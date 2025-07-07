@@ -14,9 +14,6 @@ class SignalProcessor:
         # Create and start the server
         try:
             server_thread.start()
-            # Keep the main thread alive
-        #    while True:
-         #       time.sleep(1)
         except KeyboardInterrupt:
             print("\nShutting down server...")
             server_thread.start()
@@ -28,7 +25,8 @@ class SignalProcessor:
                 data = self.tcp_client.receive_data()
                 if data is not None:
                     # Print the received data
-                    self.tcp_client.print_data(data)
+                    #self.tcp_client.print_data(data)
+                    print(data)
 
         except KeyboardInterrupt:
             print("\nStopping client...")
