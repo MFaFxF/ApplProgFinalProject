@@ -2,10 +2,10 @@ import pickle
 import socket
 import threading
 import time
-
+import os
 
 class EMGTCPServer:
-    def __init__(self, host='localhost', port=12345, pkl_file=r'/Volumes/workspace/FAU/applied_programming/Applied-Programming-2025/exercises/02/recording.pkl'):
+    def __init__(self, host='localhost', port=12345, pkl_file=os.path.join(os.path.dirname(__file__), 'recording.pkl')):
         self.host = host
         self.port = port
         self.pkl_file = pkl_file
