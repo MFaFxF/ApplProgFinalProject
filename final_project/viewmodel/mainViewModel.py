@@ -23,5 +23,4 @@ class MainViewModel(QObject):
 if __name__ == '__main__':
     mainViewModel = MainViewModel()
     while True:
-        time.sleep(1)
         print(mainViewModel.signalProcessor.data[0])
