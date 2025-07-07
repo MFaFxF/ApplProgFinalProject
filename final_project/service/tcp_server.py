@@ -81,7 +81,7 @@ class EMGTCPServer:
                 current_window = self.emg_signal[..., window_index]
                 
                 # Print the data before sending
-                self.print_data(current_window, window_index)
+                # self.print_data(current_window, window_index)
                 
                 # Convert the data to bytes and send
                 data_bytes = current_window.tobytes()
