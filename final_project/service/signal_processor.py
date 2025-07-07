@@ -11,13 +11,12 @@ class SignalProcessor:
 
     def start_server(self):
         server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
-        server_thread.start()
         # Create and start the server
         try:
             server_thread.start()
             # Keep the main thread alive
-            while True:
-                time.sleep(1)
+        #    while True:
+         #       time.sleep(1)
         except KeyboardInterrupt:
             print("\nShutting down server...")
             server_thread.start()
