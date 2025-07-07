@@ -1,13 +1,15 @@
 import time
 import threading
-from tcp_client import EMGTCPClient
-from tcp_server import EMGTCPServer
+import numpy as np
+from final_project.service.tcp_client import EMGTCPClient
+from final_project.service.tcp_server import EMGTCPServer
 
 
 class SignalProcessor:
     def __init__(self):
         self.tcp_server = EMGTCPServer()
         self.tcp_client = EMGTCPClient()
+        self.data=np.ndarray
 
     def start_server(self):
         server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
@@ -18,15 +20,16 @@ class SignalProcessor:
             print("\nShutting down server...")
             server_thread.start()
 
-    def start_client(self):
+    def run_client(self):
         self.tcp_client.connect()
         try:
             while self.tcp_client.connected:
-                data = self.tcp_client.receive_data()
-                if data is not None:
+                self.data = self.tcp_client.receive_data()
+                if self.data is not None:
+                    pass
                     # Print the received data
                     #self.tcp_client.print_data(data)
-                    print(data)
+                    #print(self.data)
 
         except KeyboardInterrupt:
             print("\nStopping client...")
@@ -37,9 +40,10 @@ class SignalProcessor:
         self.start_server()
         # Give the server a moment to start
         time.sleep(1)
-        self.start_client()
+        client_thread = threading.Thread(target=self.run_client, daemon=True)
+        client_thread.start()
 
 
 if __name__ == "__main__":
     signal_processor = SignalProcessor()
-    signal_processor.get_signal()
+    # signal_processor.get_signal()
