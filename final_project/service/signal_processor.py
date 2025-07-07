@@ -5,28 +5,26 @@ from tcp_server import EMGTCPServer
 
 
 class SignalProcessor:
-    """"""
     def __init__(self):
         self.tcp_server = EMGTCPServer()
         self.tcp_client = EMGTCPClient()
 
     def start_server(self):
+        server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
+        server_thread.start()
         # Create and start the server
         try:
-            self.tcp_server.start()
+            server_thread.start()
             # Keep the main thread alive
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
             print("\nShutting down server...")
-            self.tcp_server.stop()
+            server_thread.start()
 
     def start_client(self):
-        # Create and connect the client
         self.tcp_client.connect()
-
         try:
-            # Receive and process data
             while self.tcp_client.connected:
                 data = self.tcp_client.receive_data()
                 if data is not None:
@@ -40,9 +38,11 @@ class SignalProcessor:
 
     def get_signal(self):
         self.start_server()
+        # Give the server a moment to start
+        time.sleep(1)
         self.start_client()
 
-    
+
 if __name__ == "__main__":
     signal_processor = SignalProcessor()
     signal_processor.get_signal()
