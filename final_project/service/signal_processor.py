@@ -1,37 +1,48 @@
 import time
+import threading
 from tcp_client import EMGTCPClient
 from tcp_server import EMGTCPServer
 
-def main():
-    # Create and start the TCP server
-    server = EMGTCPServer()
-    try:
-        server.start()
-        # Keep the main thread alive
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nShutting down server...")
-        server.stop() 
 
-    # Create and start the TCP client
-    client = EMGTCPClient()
-    client.connect()
+class SignalProcessor:
+    """"""
+    def __init__(self):
+        self.tcp_server = EMGTCPServer()
+        self.tcp_client = EMGTCPClient()
 
-    try:
-        # Receive and process data
-        while client.connected:
-            data = client.receive_data()
-            if data is not None:
-                # Print the received data
-                client.print_data(data)
-            
-            # No need for additional sleep as we're already receiving at 1 chunk per second
+    def start_server(self):
+        # Create and start the server
+        try:
+            self.tcp_server.start()
+            # Keep the main thread alive
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("\nShutting down server...")
+            self.tcp_server.stop()
 
-    except KeyboardInterrupt:
-        print("\nStopping client...")
-    finally:
-        client.close()
+    def start_client(self):
+        # Create and connect the client
+        self.tcp_client.connect()
+
+        try:
+            # Receive and process data
+            while self.tcp_client.connected:
+                data = self.tcp_client.receive_data()
+                if data is not None:
+                    # Print the received data
+                    self.tcp_client.print_data(data)
+
+        except KeyboardInterrupt:
+            print("\nStopping client...")
+        finally:
+            self.tcp_client.close()
+
+    def get_signal(self):
+        self.start_server()
+        self.start_client()
+
     
 if __name__ == "__main__":
-    main() 
+    signal_processor = SignalProcessor()
+    signal_processor.get_signal()
