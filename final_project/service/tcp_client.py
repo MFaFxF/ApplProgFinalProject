@@ -8,8 +8,8 @@ class EMGTCPClient:
         self.port = port
         self.socket = None
         self.connected = False
-        self.CHANNELS = 32
-        self.SAMPLES_PER_PACKET = 18
+        self.CHANNELS = 320
+        self.SAMPLES_PER_PACKET = 36
         self.window_count = 0
 
     def print_data(self, data):
@@ -39,7 +39,7 @@ class EMGTCPClient:
             # Receive data (32 channels × 18 samples of float32)
             buffer_size = self.CHANNELS * self.SAMPLES_PER_PACKET * 4  # 4 bytes per float32
             data = self.socket.recv(buffer_size)
-            
+
             if not data:
                 print("Connection closed by server")
                 self.connected = False
@@ -75,8 +75,6 @@ def main():
             if data is not None:
                 # Print the received data
                 client.print_data(data)
-            
-            # No need for additional sleep as we're already receiving at 1 chunk per second
 
     except KeyboardInterrupt:
         print("\nStopping client...")

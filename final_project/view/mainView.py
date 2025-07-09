@@ -1,35 +1,27 @@
+from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton
-from PyQt5.QtCore import Qt
+
+from final_project.view.plotView import VisPyPlotWidget
 
 
 class MainView(QMainWindow):
-    """
-    """
+
     def __init__(self, view_model):
-        """
-        :param view_model:
-        """
         super().__init__()
         self.view_model = view_model
 
-        # Main Window
-        self.setWindowTitle('Main Window') #TODO title
-        self.setGeometry(100, 100, 1000, 800)
+        # Set up the main window
+        self.setWindowTitle("Live RMS Plot")
+        self.setGeometry(100, 100, 800, 500)
 
-        # Central widget and layout
+        # Create central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
 
-        # TODO PLotwidget?
-
-        # Create control button?
-        self.control_button = QPushButton("Start Plotting")
-        self.control_button.clicked.connect(self.toggle_plotting)
-        layout.addWidget(self.control_button)
-
-        # Connect view model signals
+        # Create plot widget
+        self.plot_widget = VisPyPlotWidget()
+        layout.addWidget(self.plot_widget)
         self.view_model.data_updated.connect(self.plot_widget.update_data)
 
-    def toggle_plotting(self):
-        pass
+        self.view_model.start_plotting()

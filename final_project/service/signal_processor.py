@@ -4,12 +4,22 @@ import numpy as np
 from final_project.service.tcp_client import EMGTCPClient
 from final_project.service.tcp_server import EMGTCPServer
 
+class SignalBuffer:
+    def __init__(self, channels=32, window_samples=2048):
+        self.buffer = np.zeros((channels, window_samples), dtype=np.float32)
+
+    def update(self, new_data):
+        _, new_samples = new_data.shape  # (32, 18)
+        self.buffer = np.roll(self.buffer, -new_samples, axis=1)
+        self.buffer[:, -new_samples:] = new_data
+        return self.buffer
+
 
 class SignalProcessor:
-    def __init__(self):
+    def __init__(self, window_size=18, sampling_rate=2000):
+        self.data = None
         self.tcp_server = EMGTCPServer()
         self.tcp_client = EMGTCPClient()
-        self.data=np.ndarray
 
     def start_server(self):
         server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
@@ -22,28 +32,28 @@ class SignalProcessor:
 
     def run_client(self):
         self.tcp_client.connect()
+        buffer = SignalBuffer()
         try:
             while self.tcp_client.connected:
-                self.data = self.tcp_client.receive_data()
-                if self.data is not None:
-                    pass
-                    # Print the received data
-                    #self.tcp_client.print_data(data)
-                    #print(self.data)
+                new_data = self.tcp_client.receive_data()
+                if new_data is not None:
+                    full_window = buffer.update(new_data)
+                    self.data = full_window  # Now self.data holds stacked signal
 
         except KeyboardInterrupt:
             print("\nStopping client...")
         finally:
             self.tcp_client.close()
 
-    def get_signal(self):
+    def generate_signal(self):
         self.start_server()
-        # Give the server a moment to start
         time.sleep(1)
         client_thread = threading.Thread(target=self.run_client, daemon=True)
         client_thread.start()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     signal_processor = SignalProcessor()
-    # signal_processor.get_signal()
+    signal_processor.generate_signal()
+    while True:
+        time.sleep(1)
+        print(signal_processor.data.shape)

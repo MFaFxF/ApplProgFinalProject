@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from view.mainView import MainView
-from viewmodel.mainViewModel import MainViewModel
+from viewModel.mainViewModel import MainViewModel
 
 
 def main():
@@ -19,4 +19,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main() 
+    main()
