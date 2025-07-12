@@ -1,5 +1,5 @@
 from vispy import app, scene
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QLabel
 import numpy as np
 
 class LivePlotWidget(QWidget):
@@ -8,7 +8,7 @@ class LivePlotWidget(QWidget):
         self.setWindowTitle("Live Plot")
         self.setGeometry(100, 100, 800, 600)
 
-        layout = QVBoxLayout()
+        layout = QHBoxLayout()
         self.setLayout(layout)
 
         self.canvas = scene.SceneCanvas(keys='interactive', size=(800, 400))
@@ -19,7 +19,7 @@ class LivePlotWidget(QWidget):
         grid.border_color = 'white'
 
         # Title
-        title = scene.Label("Plot Title GRID", color='white')
+        title = scene.Label("Live View", color='white')
         title.height_max = 40
         grid.add_widget(title, row=0, col=0, col_span=2)
 
@@ -31,6 +31,7 @@ class LivePlotWidget(QWidget):
             axis_label_margin=50,
             tick_label_margin=5,
         )
+
         yaxis.width_max = 80
         yaxis.border_color = 'white'
         grid.add_widget(yaxis, row=1, col=0)
@@ -41,22 +42,20 @@ class LivePlotWidget(QWidget):
         self.view.border_color = 'white'
         yaxis.link_view(self.view)
 
-        # X Axis (bottom)
-        xaxis = scene.AxisWidget(
-            orientation='bottom',
-            axis_label='Time',
-            axis_font_size=12,
-            axis_label_margin=30,
-            tick_label_margin=5
-        )
-        xaxis.height_max = 40
-        xaxis.border_color = 'white'
-        grid.add_widget(xaxis, row=2, col=1)
-        xaxis.link_view(self.view)
+        scene.visuals.GridLines(parent=self.view.scene)
+
+        # Channel selector with arrows
+        control_layout = QHBoxLayout()
+        self.channel_selector = QSpinBox()
+        self.channel_selector.setRange(1, 32)  # assuming 32 channels
+        self.channel_selector.setPrefix("Ch ")
+        # self.channel_selector.valueChanged.connect(self.view_model.set_channel)
+        control_layout.addWidget(QLabel("Select Channel:"))
+        control_layout.addWidget(self.channel_selector)
 
         # Line plot
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene)
-        self.view.camera.set_range(x=(0, 10000), y=(-100000, 100000))
+        self.view.camera.set_range(x=(1000, 10000), y=(-100000, 100000))
 
     def update_data(self, time_axis, data):
         print("Updating data in LivePlotWidget")

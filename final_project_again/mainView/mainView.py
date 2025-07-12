@@ -17,24 +17,16 @@ class MainView(QMainWindow):
         # Channel selector with arrows
         control_layout = QHBoxLayout()
         self.channel_selector = QSpinBox()
-        self.channel_selector.setRange(0, 31)  # assuming 32 channels
+        self.channel_selector.setRange(1, 32)  # assuming 32 channels
         self.channel_selector.setPrefix("Ch ")
         self.channel_selector.valueChanged.connect(self.view_model.set_channel)
         control_layout.addWidget(QLabel("Select Channel:"))
         control_layout.addWidget(self.channel_selector)
-        layout.addLayout(control_layout)
-
-        ch_10_button = QPushButton("Set Channel 10")
-        ch_10_button.clicked.connect(lambda: self.view_model.set_channel(10))
-        layout.addWidget(ch_10_button)
-
-        ch_20_button = QPushButton("Set Channel 20")
-        ch_20_button.clicked.connect(lambda: self.view_model.set_channel(20))
-        layout.addWidget(ch_20_button)
 
         self.plot_widget = LivePlotWidget()
         layout.addWidget(self.plot_widget)
         
+        layout.addLayout(control_layout)
         # Connect view model signals
         self.view_model.live_data_updated.connect(self.plot_widget.update_data)
 

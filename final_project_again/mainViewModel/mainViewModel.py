@@ -20,7 +20,7 @@ class MainViewModel(QObject):
         self.live_data_time_axis = np.linspace(0, 10000, self.signal_processor.live_window_size)
 
     def set_channel(self, channel):
-        self.channel = channel
+        self.channel = channel - 1
 
     def do_sth(self):
         live_window = self.signal_processor.live_window

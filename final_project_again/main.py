@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton
-from mainView.mainView import MainView
+from mainView.mainViewNew import MainView
 from mainViewModel.mainViewModel import MainViewModel
 
 import sys
