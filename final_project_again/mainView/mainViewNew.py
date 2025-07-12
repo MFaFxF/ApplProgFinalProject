@@ -26,7 +26,6 @@ class MainView(QMainWindow):
         live_view_layout.addWidget(just_a_fucking_button)
         live_view_layout.addWidget(QPushButton("Gesundheit"))
 
-
         recording_view_layout = QHBoxLayout()
         recording_view_layout.addWidget(recording_widget)
 

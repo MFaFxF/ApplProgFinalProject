@@ -8,8 +8,8 @@ class EMGTCPClient:
         self.port = port
         self.socket = None
         self.connected = False
-        self.CHANNELS = 320
-        self.SAMPLES_PER_PACKET = 36
+        self.CHANNELS = 32
+        self.SAMPLES_PER_PACKET = 18
         self.window_count = 0
 
     def print_data(self, data):

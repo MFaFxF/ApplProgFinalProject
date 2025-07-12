@@ -2,7 +2,7 @@ import numpy as np
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QApplication
 
-from final_project.service.signal_processor import SignalProcessor
+from service.signal_processor import SignalProcessor
 
 
 class MainViewModel(QObject):

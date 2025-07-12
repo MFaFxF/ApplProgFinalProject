@@ -1,8 +1,8 @@
 import time
 import threading
 import numpy as np
-from final_project.service.tcp_client import EMGTCPClient
-from final_project.service.tcp_server import EMGTCPServer
+from .tcp_client import EMGTCPClient
+from .tcp_server import EMGTCPServer
 
 class SignalBuffer:
     def __init__(self, channels=32, window_samples=2048):
@@ -57,3 +57,4 @@ if __name__ == '__main__':
     while True:
         time.sleep(1)
         print(signal_processor.data.shape)
+        
