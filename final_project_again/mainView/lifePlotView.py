@@ -1,5 +1,5 @@
 from vispy import app, scene
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 import numpy as np
 
 class LivePlotWidget(QWidget):
@@ -43,15 +43,6 @@ class LivePlotWidget(QWidget):
         yaxis.link_view(self.view)
 
         scene.visuals.GridLines(parent=self.view.scene)
-
-        # Channel selector with arrows
-        control_layout = QHBoxLayout()
-        self.channel_selector = QSpinBox()
-        self.channel_selector.setRange(1, 32)  # assuming 32 channels
-        self.channel_selector.setPrefix("Ch ")
-        # self.channel_selector.valueChanged.connect(self.view_model.set_channel)
-        control_layout.addWidget(QLabel("Select Channel:"))
-        control_layout.addWidget(self.channel_selector)
 
         # Line plot
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene)
