@@ -19,36 +19,38 @@ class MainView(QMainWindow):
         live_plot_widget.setFixedHeight(400)
 
         recording_widget = RecordingPlotWidget()
+        recording_widget.setFixedHeight(400)
 
         live_view_layout = QHBoxLayout()
         live_view_layout.addWidget(live_plot_widget)
 
         # add buttons to live view
         live_button_layout = QVBoxLayout()
-        button = QPushButton("Start/Stop")
-        live_button_layout.addWidget(button)
-        button = QPushButton("Raw Signal")
-        live_button_layout.addWidget(button)
-        button = QPushButton("RMS")
-        live_button_layout.addWidget(button)
-        button = QPushButton("Envelope")
-        live_button_layout.addWidget(button)
-        live_view_layout.addLayout(live_button_layout)
+        self.btn_start_stop = QPushButton("Start")
+        self.btn_start_stop.setCheckable(True)
+        self.btn_start_stop.setFixedSize(100,100)
+        self.btn_start_stop.setStyleSheet(
+            """
+            QPushButton {
+                font-size: 14px;
+            padding: 8px;
+            background-color: #4CAF50;  /* Green */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            }
+            QPushButton:hover {
+            background-color: #45a049;
+            }
+            """
+            )
+        
+        live_view_layout.addWidget(self.btn_start_stop)
+        self.btn_start_stop.clicked.connect(self.handle_start_stop)
 
         recording_plot_widget = QHBoxLayout()
         recording_plot_widget.addWidget(recording_widget)
         recording_plot_widget.addLayout(live_button_layout)
-
-        recording_button_layout = QVBoxLayout()
-        button = QPushButton("Start/Stop")
-        recording_button_layout.addWidget(button)
-        button = QPushButton("Raw Signal")
-        recording_button_layout.addWidget(button)
-        button = QPushButton("RMS")
-        recording_button_layout.addWidget(button)
-        button = QPushButton("Envelope")
-        recording_button_layout.addWidget(button)
-        recording_plot_widget.addLayout(recording_button_layout)
 
         layout.addLayout(live_view_layout)
         layout.addLayout(recording_plot_widget)
@@ -56,3 +58,10 @@ class MainView(QMainWindow):
         self.view_model.live_data_updated.connect(live_plot_widget.update_data)
         self.view_model.full_data_updated.connect(recording_widget.update_data)
 
+    def handle_start_stop(self):
+        if self.btn_start_stop.isChecked():
+            self.btn_start_stop.setText("Stop")
+            self.btn_start_stop.setStyleSheet("background: #f44336")
+        else:
+            self.btn_start_stop.setText("Start")
+            self.btn_start_stop.setStyleSheet("background: #4caf50")
