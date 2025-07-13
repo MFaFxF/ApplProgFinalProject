@@ -15,7 +15,8 @@ yaxis = scene.AxisWidget(orientation='left',
                          axis_label='Y Axis',
                          axis_font_size=12,
                          axis_label_margin=50,
-                         tick_label_margin=5)
+                         tick_label_margin=5
+                         )
 yaxis.width_max = 80
 grid.add_widget(yaxis, row=1, col=0)
 

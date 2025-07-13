@@ -62,6 +62,10 @@ class MainView(QMainWindow):
         if self.btn_start_stop.isChecked():
             self.btn_start_stop.setText("Stop")
             self.btn_start_stop.setStyleSheet("background: #f44336")
+
+            self.view_model.start_signal()
         else:
             self.btn_start_stop.setText("Start")
             self.btn_start_stop.setStyleSheet("background: #4caf50")
+
+            self.view_model.stop_signal()

@@ -20,20 +20,23 @@ class SignalProcessor:
         self.tcp_server = EMGTCPServer()
         self.tcp_client = EMGTCPClient()
 
+        self.server_thread = None
+        self.client_thread = None
+
         self.live_window_size = 2048
         self.num_channels = 32
 
+        self.new_data = None
+
         self.live_window = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32)
-        self.full_window = None
+        self.full_window = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32)
+
+        self.running = False
+        self.start_server()
 
     def start_server(self):
-        server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
-        # Create and start the server
-        try:
-            server_thread.start()
-        except KeyboardInterrupt:
-            print("\nShutting down server...")
-            server_thread.start()
+        self.server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
+        self.server_thread.start()
 
     def run_client(self):
         self.tcp_client.connect()
@@ -41,28 +44,34 @@ class SignalProcessor:
         # print("Client connected to server, waiting for data...")
         try:
             while self.tcp_client.connected:
-                new_data = self.tcp_client.receive_data()
-                if new_data is not None:
-                    self.live_window = live_signal_buffer.update(new_data)
+                self.new_data = self.tcp_client.receive_data()
+                if self.new_data is not None:
+                    self.live_window = live_signal_buffer.update(self.new_data)
                     if self.full_window is None:
                         self.full_window = self.live_window
                     else:
-                        self.full_window = np.hstack((self.full_window, new_data))
+                        self.full_window = np.hstack((self.full_window, self.new_data))
 
         except KeyboardInterrupt:
             print("\nStopping client...")
         finally:
             self.tcp_client.close()
 
-    def process_signal(self):
-        self.start_server()
-        time.sleep(1)
-        client_thread = threading.Thread(target=self.run_client, daemon=True)
-        client_thread.start()
+    def start_signal(self):
+        self.running = True
+        self.client_thread = threading.Thread(target=self.run_client, daemon=True)
+        self.client_thread.start()
+
+    def stop_client(self):
+        self.running = False
+        self.tcp_client.close()
+
+    def stop_server(self):
+        self.tcp_server.stop()
 
 if __name__ == '__main__':
     signal_processor = SignalProcessor()
-    signal_processor.process_signal()
+    signal_processor.start_signal()
 
     plt.ion()
     fig, ax = plt.subplots()
@@ -84,4 +93,3 @@ if __name__ == '__main__':
 
             fig.canvas.draw()
             fig.canvas.flush_events()
-

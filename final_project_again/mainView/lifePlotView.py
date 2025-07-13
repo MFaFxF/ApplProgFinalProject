@@ -49,7 +49,7 @@ class LivePlotWidget(QWidget):
         self.view.camera.set_range(x=(1000, 10000), y=(-100000, 100000))
 
     def update_data(self, time_axis, data):
-        print("Updating data in LivePlotWidget")
+        # print("Updating data in LivePlotWidget")
         line_data = np.column_stack((time_axis, data))
         self.line.set_data(line_data)
         self.canvas.update()
