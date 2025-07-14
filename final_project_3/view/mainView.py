@@ -1,5 +1,7 @@
 
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QFrame
+
+from .recordingPlotWidget import RecordingPlotWidget
 from .lifePlotWidget import LivePlotWidget
 
 class MainView(QMainWindow):
@@ -24,10 +26,10 @@ class MainView(QMainWindow):
         # connect buttons
         self.live_plot_widget.start_stop_button.clicked.connect(self.handle_start_stop_live)
         self.live_plot_widget.channel_selector.valueChanged.connect(self.set_channel_live)
-        self.live_plot_widget.raw_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('raw' if checked else 'none'))
-        self.live_plot_widget.rms_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('rms' if checked else 'none'))
-        self.live_plot_widget.envelope_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('envelope' if checked else 'none'))
-        self.live_plot_widget.filter_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('filter' if checked else 'none'))
+        self.live_plot_widget.raw_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('raw') if checked else None)
+        self.live_plot_widget.rms_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('rms') if checked else None)
+        self.live_plot_widget.envelope_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('envelope') if checked else None)
+        self.live_plot_widget.filter_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('filter') if checked else None)
 
         central_layout.addLayout(live_view_layout)
 
@@ -43,6 +45,12 @@ class MainView(QMainWindow):
 
         central_layout.addWidget(separator)
 
+        # Recording Widget
+        self.recording_widget = RecordingPlotWidget()
+        recording_layout = QVBoxLayout(self.recording_widget)
+        self.recording_widget.setFixedHeight(200)
+
+        self.view_model.recorded_data_updated.connect(self.recording_widget.update_data)
 
     def handle_start_stop_live(self):
         if self.live_plot_widget.start_stop_button.isChecked():

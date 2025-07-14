@@ -11,6 +11,8 @@ class MainViewModel(QObject):
     live_processing_mode_changed = pyqtSignal(str)
     rms_valued_updated = pyqtSignal(float)
 
+    recorded_data_updated = pyqtSignal(np.ndarray, np.ndarray)
+
     def __init__(self):
         super().__init__()
         self.signal_processor = SignalProcessor()
@@ -34,11 +36,12 @@ class MainViewModel(QObject):
 
         self.live_signal = None
         self.is_receiving = False
+        self.is_recording = False
+        self.got_new_data = False
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_data)
         self.timer.start(10)
-
 
     def _calculate_live_rms(self, data):
         # calculate rms of the current data
@@ -119,3 +122,7 @@ class MainViewModel(QObject):
         self.live_data_updated.emit(self.live_data_time_points, self.signal_processor.live_window[self.channel])
         if self.current_live_mode != 'raw': 
             self._update_processed_data()
+
+        if self.is_recording and self.got_new_data:
+            self.got_new_data = False
+            # add recorded data to the list

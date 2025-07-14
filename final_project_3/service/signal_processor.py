@@ -15,7 +15,7 @@ class LiveSignalBuffer:
         self.buffer = np.roll(self.buffer, -num_new_samples, axis=1)
         self.buffer[:, -num_new_samples:] = new_data
         return self.buffer
-    
+
 
 class SignalProcessor:
     def __init__(self):
@@ -27,6 +27,8 @@ class SignalProcessor:
 
         self.live_signal_buffer = LiveSignalBuffer()
         self.live_window = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32) # main output of this class
+
+        self.got_new_data = False
 
     def start_server(self):
         self.server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
@@ -42,7 +44,10 @@ class SignalProcessor:
         while self.tcp_client.connected:
             new_data = self.tcp_client.receive_data()
             if new_data is not None:
+                self.got_new_data = True
                 self.live_window = self.live_signal_buffer.update(new_data)
+            else:
+                print("No new data received, waiting...")
     
     def generate_signal(self):
         self.start_server()
