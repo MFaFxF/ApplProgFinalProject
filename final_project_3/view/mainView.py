@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QFrame
 from .lifePlotWidget import LivePlotWidget
 
 class MainView(QMainWindow):
@@ -24,12 +24,24 @@ class MainView(QMainWindow):
         # connect buttons
         self.live_plot_widget.start_stop_button.clicked.connect(self.handle_start_stop_live)
         self.live_plot_widget.channel_selector.valueChanged.connect(self.set_channel_live)
-
+        self.live_plot_widget.raw_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('raw' if checked else 'none'))
+        self.live_plot_widget.rms_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('rms' if checked else 'none'))
+        self.live_plot_widget.envelope_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('envelope' if checked else 'none'))
+        self.live_plot_widget.filter_button.toggled.connect(lambda checked: self.view_model.set_processing_mode('filter' if checked else 'none'))
 
         central_layout.addLayout(live_view_layout)
 
         # connect view model to live plot widget
-        self.view_model.live_signal_updated.connect(self.live_plot_widget.update_data)
+        self.view_model.live_data_updated.connect(self.live_plot_widget.update_data)
+        self.view_model.live_processing_data_updated.connect(self.live_plot_widget.update_data)
+
+        # Horizontal line separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setStyleSheet("color: gray; margin-top: 10px; margin-bottom: 10px;")
+
+        central_layout.addWidget(separator)
 
 
     def handle_start_stop_live(self):

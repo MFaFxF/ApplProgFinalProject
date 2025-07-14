@@ -2,53 +2,120 @@
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 import numpy as np
 from service.signal_processor import SignalProcessor
+from scipy.signal import hilbert , butter , lfilter
 
 
 class MainViewModel(QObject):
-    live_signal_updated = pyqtSignal(np.ndarray, np.ndarray)
+    live_data_updated = pyqtSignal(np.ndarray, np.ndarray)  # Optional if still needed
+    live_processing_data_updated = pyqtSignal(np.ndarray, np.ndarray)
+    live_processing_mode_changed = pyqtSignal(str)
+    rms_valued_updated = pyqtSignal(float)
 
     def __init__(self):
         super().__init__()
         self.signal_processor = SignalProcessor()
         self.signal_processor.generate_signal()
 
+        self.rms_values = []
+        self.live_processing_fns = {
+            'raw' : lambda x:x , 
+            'rms' : self._calculate_live_rms,
+            'envelope' : self._calculate_live_envelope,
+            'filter': self._apply_live_filter
+        }
+
+        self.current_live_mode = 'raw'
+        self.rms_window_size = 100 
+        self.filter_cutoff = 0.1 
+
         self.channel = 0
 
-        self.time_points_live_signal = np.linspace(0, 10, self.signal_processor.live_window_size) #TODO meaningful value
+        self.live_data_time_points = np.linspace(0, 10, self.signal_processor.live_window_size) #TODO meaningful value
 
         self.live_signal = None
         self.is_receiving = False
 
-        self.filter_mode_live_signal = "none"
-
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_data)
-        self.timer.start(50)
+        self.timer.start(10)
+
+
+    def _calculate_live_rms(self, data):
+        # calculate rms of the current data
+        squared = np.square(data)
+        window = np.ones(self.rms_window_size)/self.rms_window_size
+        return np.sqrt(np.convolve(squared, window, 'valid'))
+    
+    def _calculate_live_envelope(self , data):
+        """Calculate envelope of the live signal using Hilbert transform  """
+        return np.abs(hilbert(data))
+    
+    def _apply_live_filter(self , data):
+        """Apply low-pass filter to live data"""
+        b , a = butter(4 , self.filter_cutoff ,btype="low")
+        return lfilter(b , a , data)
+
+    def set_processing_mode(self , mode):
+        """Switch between processing modes """
+
+        if not hasattr(self ,'live_processing_fns'):
+            self.live_processing_fns = {
+                'raw': lambda x: x,
+                'rms': self._calculate_live_rms,
+                'envelope': self._calculate_live_envelope,
+                'filter': self._apply_live_filter
+            }
+        if mode in self.live_processing_fns:
+            self.current_live_mode = mode 
+            self.live_processing_mode_changed.emit(mode)
+            self._update_processed_data()
+
+        else:
+            print(f"Warning: Unknown processing mode '{mode}'")    
+
+    def _update_processed_data(self):
+        """Calculate and emit processed data"""
+
+        raw_data =  self.signal_processor.live_window[self.channel]
+        processor = self.live_processing_fns[self.current_live_mode]
+        processed_data = processor(raw_data)
+
+        # Adjust time axis if processing shortens the data 
+
+        processed_time = self.live_data_time_points[:len(processed_data)]
+        self.live_processing_data_updated.emit(processed_time, processed_data)
+
 
     def set_channel(self, channel):
         self.channel = channel - 1
         print("Switched to channel: ", channel)
-
-    def update_data(self):
-        if self.is_receiving:
-            # get current signal
-            self.live_signal = self.signal_processor.live_signal
-
-            # apply filter
-            self.live_signal = self.process_signal(self.live_signal, self.filter_mode_live_signal)
-
-            self.live_signal_updated.emit(self.time_points_live_signal, self.live_signal[self.channel, :])
-
     def start_recording(self):
         self.is_receiving = True
 
     def stop_recording(self):
         self.is_receiving = False
+    
+    def calculate_rms(self):
+        """Calculate RMS  for the current channel"""
+        try:
+            # get the current channel data 
+            channel_data = self.signal_processor.live_window[self.channel]
 
-    def process_signal(self, signal, filter_mode):
-        if filter_mode == "none":
-            return signal
+            #calculate the rms 
+            rms_value = np.sqrt(np.mean(np.square(channel_data)))
+
+            self.rms_values.append(rms_value)
+            print(self.rms_values)
+            self.rms_valued_updated.emit(rms_value)
+            return rms_value
+        except Exception as e :
+            print(f"Error: calculation of the rms {e}")
+            return 0.0 
         
-    def apply_rms(self, signal):
-        # do stuff
-        pass
+    def update_data(self):
+        """Update live data and emit signals"""
+        if not self.is_receiving:
+            return
+        self.live_data_updated.emit(self.live_data_time_points, self.signal_processor.live_window[self.channel])
+        if self.current_live_mode != 'raw': 
+            self._update_processed_data()

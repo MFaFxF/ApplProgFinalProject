@@ -1,5 +1,6 @@
 from vispy import app, scene
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QButtonGroup, QFrame, QSizePolicy
+from PyQt5.QtCore import Qt, QSize
 import numpy as np
 
 class LivePlotWidget(QWidget):
@@ -7,7 +8,8 @@ class LivePlotWidget(QWidget):
         super().__init__()
         self.setWindowTitle("Live Plot")
 
-        self.setGeometry(100, 100, 800, 600)
+        # self.setGeometry(100, 100, 800, 600)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         layout = QHBoxLayout()
         self.setLayout(layout)
@@ -108,7 +110,10 @@ class LivePlotWidget(QWidget):
         self.rms_button = QPushButton("RMS")
         self.rms_button.setCheckable(True)
 
-        for btn in [self.raw_button, self.filter_button, self.rms_button]:
+        self.envelope_button = QPushButton("Envelope")
+        self.envelope_button.setCheckable(True)
+
+        for btn in [self.raw_button, self.filter_button, self.rms_button, self.envelope_button]:
             btn.setFixedSize(100, 40)
             btn.setStyleSheet(
                 """
@@ -146,6 +151,8 @@ class LivePlotWidget(QWidget):
         mode_layout.addWidget(self.raw_button)
         mode_layout.addWidget(self.filter_button)
         mode_layout.addWidget(self.rms_button)
+        mode_layout.addWidget(self.envelope_button)
+        mode_layout.setAlignment(Qt.AlignTop)
         mode_layout.setSizeConstraint(QVBoxLayout.SetMinimumSize)
 
         mode_button_frame.setLayout(mode_layout)

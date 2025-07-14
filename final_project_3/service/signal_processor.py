@@ -26,7 +26,7 @@ class SignalProcessor:
         self.num_channels = 32
 
         self.live_signal_buffer = LiveSignalBuffer()
-        self.live_signal = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32) # main output of this class
+        self.live_window = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32) # main output of this class
 
     def start_server(self):
         self.server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
@@ -42,7 +42,7 @@ class SignalProcessor:
         while self.tcp_client.connected:
             new_data = self.tcp_client.receive_data()
             if new_data is not None:
-                self.live_signal = self.live_signal_buffer.update(new_data)
+                self.live_window = self.live_signal_buffer.update(new_data)
     
     def generate_signal(self):
         self.start_server()
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            signal = processor.live_signal[0, :]  # channel 0
+            signal = processor.live_window[0, :]  # channel 0
             line.set_ydata(signal)
             fig.canvas.draw()
             fig.canvas.flush_events()
