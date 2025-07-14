@@ -45,11 +45,37 @@ class LivePlotWidget(QWidget):
         scene.visuals.GridLines(parent=self.view.scene)
 
         # Line plot
-        self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene)
+        self.line = scene.Line(np.array([[0, 0]]), width = 2 , parent=self.view.scene)
         self.view.camera.set_range(x=(1000, 10000), y=(-100000, 100000))
 
+        # processed data line  plot 
+        self.processed_line = scene.Line(np.array([[0,0]]) , color="magenta" , width= 2 , parent= self.view.scene)
+        self.processed_line_visible = False 
+
     def update_data(self, time_axis, data):
-        print("Updating data in LivePlotWidget")
+        #print("Updating data in LivePlotWidget")
         line_data = np.column_stack((time_axis, data))
         self.line.set_data(line_data)
         self.canvas.update()
+
+    def update_processed_data(self , time_axis , data):
+        #print("Updating processed data in LivePlotWidget")
+        line_data  = np.column_stack((time_axis , data))
+        self.processed_line.set_data(line_data)
+        self.canvas.update()
+
+    def set_display_mode(self, mode):
+        """Toggle between raw and processed views"""
+        self.line.visible = (mode == 'raw')
+        self.processed_line.visible = (mode != 'raw')
+        
+        # Update colors based on mode
+        colors = {
+            'rms': (1, 0.5, 0, 1),    # Orange
+            'envelope': (0, 1, 0, 1), # Green
+            'filtered': (1, 0, 1, 1)   # Magenta
+        }
+        #self.processed_line.color = colors.get(mode, (1, 0, 1, 1))
+        self.canvas.update()
+
+
