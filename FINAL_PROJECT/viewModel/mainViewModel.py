@@ -1,14 +1,16 @@
-from PyQt5.QtCore import QObject, pyqtSignal, QTimer
+from PyQt5.QtCore import QObject, pyqtSignal, QTimer 
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 import numpy as np
 from service.signal_processor import SignalProcessor
 from scipy.signal import hilbert, butter, lfilter
-
+import csv
 class MainViewModel(QObject):
     live_data_updated = pyqtSignal(np.ndarray, np.ndarray)
     recorded_data_updated = pyqtSignal(np.ndarray, np.ndarray)
 
     def __init__(self):
         super().__init__()
+        
         self.signal_processor = SignalProcessor()
         self.signal_processor.generate_signal()
         self.sampling_rate = self.signal_processor.sampling_rate
@@ -87,7 +89,30 @@ class MainViewModel(QObject):
         """Apply low-pass filter to live data"""
         b, a = butter(4, self.filter_cutoff, btype="low")
         return lfilter(b, a, data)
+    
+    def export_results(self):
+        
+        if self.recorded_data is None or self.processed_recorded_data is None:
+            QMessageBox.warning(None , "Export Failed" , "No data exported")
+            return
 
+
+        file_path , _ = QFileDialog.getSaveFileName(
+            None , "Export data " , "", "CSV Files (*.csv);;Text Files (*.txt)"
+        ) 
+
+        if not file_path:
+            return # User cancel it 
+        
+        try:
+            with open(file_path , "w" , newline='') as f:
+                writer =  csv.writer(f)
+                writer.writerow(["Time" , "Value"]) # Headers 
+                for t , v in zip(self.recorded_data_time_points , self.processed_recorded_data):
+                    writer.writerow([t,v])
+            QMessageBox.information( None, "Data Uploaded Succefully" , f"data uploaded to : {file_path}")
+        except Exception as e:
+            QMessageBox.critical(None , "export failed ", str(e))
 
     def update_live_data(self):
         if self.is_receiving:

@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QFrame, QSizePolicy
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QFrame, QSizePolicy , QLabel
 
 from .recordingWidget import RecordingPlotWidget
 from .livePlotWidget import LivePlotWidget
@@ -11,18 +11,25 @@ class MainView(QMainWindow):
 
         # Set window title, size
         self.setWindowTitle("Applied Programming - EMG Data Viewer")
-        self.setFixedSize(1200, 800)
+        self.resize(1200, 800)
 
         # Central layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_layout = QVBoxLayout(central_widget)
-
+        central_widget.setSizePolicy(QSizePolicy.Expanding , QSizePolicy.Expanding)
+        
         # -- live signal widget --
+
+
 
         # add widget
         live_plot_widget = LivePlotWidget()
         central_layout.addWidget(live_plot_widget)
+        live_plot_widget.setStyleSheet("background-color: #ccffcc;")  # Light green
+        central_layout.setContentsMargins(10, 10, 10, 10)
+        central_layout.setSpacing(15)
+
 
         # connect Buttons
         live_plot_widget.start_stop_button.clicked.connect(self.handle_start_stop)
@@ -40,13 +47,16 @@ class MainView(QMainWindow):
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
-        separator.setStyleSheet("color: gray; margin-top: 10px; margin-bottom: 10px;")
+        separator.setStyleSheet("background-color: black; margin-top: 10px; margin-bottom: 10px; width: 2px ;")
+        
+            
 
         central_layout.addWidget(separator)
 
         # -- recording widget --
-        recording_widget = RecordingPlotWidget()
+        recording_widget = RecordingPlotWidget(self.view_model)
         central_layout.addWidget(recording_widget)
+        recording_widget.setStyleSheet("background-color: #1e1e1e;")
 
         # connect buttons
         recording_widget.channel_selector.valueChanged.connect(view_model.set_recording_channel)
