@@ -11,6 +11,8 @@ class LivePlotWidget(QWidget):
         # self.setGeometry(100, 100, 800, 600)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        self.channel = 0
+
         layout = QHBoxLayout()
         self.setLayout(layout)
 
@@ -88,6 +90,7 @@ class LivePlotWidget(QWidget):
                 padding: 4px;
                 color: white;
                 border-radius: 4px;
+                background: "black"
             }
             QSpinBox::up-button, QSpinBox::down-button {
                 width: 16px;
@@ -95,6 +98,8 @@ class LivePlotWidget(QWidget):
             """
         )
         button_layout.addWidget(self.channel_selector)
+
+        self.channel_selector.valueChanged.connect(self.set_channel)
 
         # --- Mode Buttons (Raw / Filter / RMS) ---
         self.mode_button_group = QButtonGroup(self)
@@ -163,7 +168,9 @@ class LivePlotWidget(QWidget):
         layout.addLayout(button_layout)
 
     def update_data(self, time_points, data):
-        line_data = np.column_stack((time_points, data))
+        self.live_data_time_points = time_points
+        self.live_signal = data
+        line_data = np.column_stack((time_points, data[self.channel, :]))
         self.line.set_data(line_data)
         self.canvas.update()
 
@@ -174,3 +181,9 @@ class LivePlotWidget(QWidget):
         else:
             self.start_stop_button.setText("Start")
             self.start_stop_button.setStyleSheet("background-color: #4CAF50; color: white;")
+
+    def set_channel(self, channel):
+        self.channel = channel - 1
+        print(f"Live channel set to: {self.channel + 1}")
+        # Update the plot with the new channel data
+        self.update_data(self.live_data_time_points, self.live_signal)

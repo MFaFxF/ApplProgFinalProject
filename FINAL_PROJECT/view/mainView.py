@@ -24,6 +24,8 @@ class MainView(QMainWindow):
         live_plot_widget = LivePlotWidget()
         central_layout.addWidget(live_plot_widget)
 
+        live_plot_widget.view.camera.set_range(x=(1, 5), y=(-50000, 50000))
+
         # connect Buttons
         live_plot_widget.start_stop_button.clicked.connect(self.handle_start_stop)
         live_plot_widget.channel_selector.valueChanged.connect(self.view_model.set_live_channel)
@@ -57,8 +59,9 @@ class MainView(QMainWindow):
 
         # connect data
         view_model.recorded_data_updated.connect(recording_widget.update_data)
-        
+        recording_widget.clear_button.clicked.connect(view_model.clear_recording)
 
+        
     def handle_start_stop(self):
         if self.view_model.is_receiving:
             self.view_model.is_receiving = False

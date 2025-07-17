@@ -1,56 +1,78 @@
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar,
+)
 from matplotlib.figure import Figure
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QFrame, QSizePolicy
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QSizePolicy, QButtonGroup
+)
 from PyQt5.QtCore import Qt
+
 
 class RecordingPlotWidget(QWidget):
     def __init__(self):
         super().__init__()
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+    
+        self.channel = 0
 
-        layout = QHBoxLayout()
-        self.setLayout(layout)
+        main_layout = QVBoxLayout()
+        self.setLayout(main_layout)
 
-        # Matplotlib Plot
-        self.figure = Figure(facecolor="black")
-        self.ax = self.figure.add_subplot(111)
-        self.ax.set_facecolor("black")
-        self.ax.tick_params(colors='white')
-        self.ax.xaxis.label.set_color('white')
-        self.ax.yaxis.label.set_color('white')
-        self.ax.title.set_color('white')
+        # === Plot Area (Canvas + Toolbar) ===
+        plot_container = QWidget()
+        plot_layout = QVBoxLayout()
+        plot_layout.setContentsMargins(0, 0, 0, 0)
+        plot_container.setLayout(plot_layout)
+
+        with plt.style.context('dark_background'):
+            self.figure = Figure()
+            self.ax = self.figure.add_subplot(111)
+
+            self.ax.set_facecolor("black")
+            self.ax.set_title("EMG Recording", color='white')
+            self.ax.set_xlabel("Time (s)", color='white')
+            self.ax.set_ylabel("EMG Signal", color='white')
+            self.ax.tick_params(colors='white')
+            self.ax.grid(True, color='white', linestyle='--', linewidth=0.5)
 
         self.canvas = FigureCanvas(self.figure)
-        layout.addWidget(self.canvas)
-
-        # Control Panel
-        control_layout = QVBoxLayout()
-
-        self.record_button = QPushButton("Record")
-        self.record_button.setCheckable(True)
-        self.record_button.setFixedSize(100, 100)
-        self.record_button.setStyleSheet(
-            """
-            QPushButton {
-                font-size: 14px;
-                padding: 8px;
-                background-color: #d32f2f;
-                color: white;
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        self.toolbar.setStyleSheet("""
+            QToolBar {
+                background-color: white;
                 border: none;
-                border-radius: 4px;
             }
-            QPushButton:hover {
-                background-color: #b71c1c;
+            QToolButton {
+                background: transparent;
+                border: none;
+                padding: 5px;
             }
-            """
-        )
-        self.record_button.clicked.connect(self._toggle_recording_style)
-        control_layout.addWidget(self.record_button)
+            QToolButton:hover {
+                background-color: #ddd;
+            }
+            QToolButton:checked {
+                background-color: #bbb;
+            }
+        """)
 
-        # Optional: Channel Selector
+
+        plot_layout.addWidget(self.canvas)
+        plot_layout.addWidget(self.toolbar)
+
+        # === Horizontal Layout: Plot + Controls ===
+        horizontal_layout = QHBoxLayout()
+        horizontal_layout.addWidget(plot_container)
+
+        # === Control Panel ===
+        control_layout = QVBoxLayout()
+        control_layout.setAlignment(Qt.AlignTop)
+
+        # Channel Selector
         self.channel_selector = QSpinBox()
         self.channel_selector.setRange(1, 32)
         self.channel_selector.setPrefix("Ch ")
@@ -63,39 +85,79 @@ class RecordingPlotWidget(QWidget):
                 color: white;
                 background-color: #333;
                 border-radius: 4px;
+                background: "black"
             }
             QSpinBox::up-button, QSpinBox::down-button {
                 width: 16px;
             }
             """
         )
+        self.channel_selector.valueChanged.connect(self.set_channel)
         control_layout.addWidget(self.channel_selector)
 
-        control_layout.setAlignment(Qt.AlignTop)
-        layout.addLayout(control_layout)
+        horizontal_layout.addLayout(control_layout)
+        main_layout.addLayout(horizontal_layout)
 
-    def _toggle_recording_style(self):
-        if self.record_button.isChecked():
-            self.record_button.setText("Stop")
-            self.record_button.setStyleSheet("background-color: #388E3C; color: white;")
-        else:
-            self.record_button.setText("Record")
-            self.record_button.setStyleSheet("background-color: #d32f2f; color: white;")
+        self.record_mode_group = QButtonGroup(self)
+        self.record_mode_group.setExclusive(True)
+
+        self.record_raw_button = QPushButton("Raw")
+        self.record_raw_button.setCheckable(True)
+        self.record_raw_button.setChecked(True)
+
+        self.record_rms_button = QPushButton("RMS")
+        self.record_rms_button.setCheckable(True)
+
+        self.record_envelope_button = QPushButton("Envelope")
+        self.record_envelope_button.setCheckable(True)
+
+        self.record_filter_button = QPushButton("Filter")
+        self.record_filter_button.setCheckable(True)
+
+        for btn in [self.record_raw_button, self.record_rms_button, self.record_envelope_button, self.record_filter_button]:
+            btn.setFixedSize(100, 40)
+            btn.setStyleSheet("""
+                QPushButton {
+                    font-size: 13px;
+                    padding: 6px;
+                    background-color: #444;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                }
+                QPushButton:checked {
+                    background-color: #2196F3;
+                }
+                QPushButton:hover {
+                    background-color: #666;
+                }
+            """)
+            self.record_mode_group.addButton(btn)
+            control_layout.addWidget(btn)
+    
+
+    def set_channel(self, channel):
+        self.channel = channel - 1
+        print(f"Recording channel set to: {self.channel + 1}")
+        # Update the plot with the new channel data
+        self.update_data(self.time_axis, self.data)
+        
 
     def update_data(self, time_axis, data):
-        self.ax.clear()
-        self.ax.plot(time_axis, data, color='lime', linewidth=1)
-        self.ax.set_title("EMG Recording")
-        self.ax.set_xlabel("Time (s)")
-        self.ax.set_ylabel("EMG Signal")
-        self.ax.set_xlim(time_axis[0], time_axis[-1])
+        """Update the plot with new data"""
+        self.time_axis = time_axis
+        self.data = data
 
-        # Re-apply dark theme
+        self.ax.clear()
+        self.ax.plot(time_axis, data[self.channel, :], color='lime', linewidth=1)
+
         self.ax.set_facecolor("black")
+        self.ax.set_title("EMG Recording", color='white')
+        self.ax.set_xlabel("Time (s)", color='white')
+        self.ax.set_ylabel("EMG Signal", color='white')
         self.ax.tick_params(colors='white')
-        self.ax.xaxis.label.set_color('white')
-        self.ax.yaxis.label.set_color('white')
-        self.ax.title.set_color('white')
+        self.ax.grid(True, color='white', linestyle='--', linewidth=0.5)
+        self.ax.set_xlim(time_axis[0], time_axis[-1])
 
         self.canvas.draw()
         self.canvas.flush_events()

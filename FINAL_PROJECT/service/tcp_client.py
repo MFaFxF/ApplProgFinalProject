@@ -12,6 +12,9 @@ class EMGTCPClient:
         self.SAMPLES_PER_PACKET = 18
         self.window_count = 0
 
+        self.points_received = 0
+        self.t0 = time.time()
+
     def print_data(self, data):
         """Print the received chunk of data"""
         print(f"\nReceived window {self.window_count}:")
@@ -25,6 +28,7 @@ class EMGTCPClient:
             self.socket.connect((self.host, self.port))
             self.connected = True
             print(f"Connected to server at {self.host}:{self.port}")
+            self.t0 = time.time()
         except Exception as e:
             print(f"Error connecting to server: {e}")
             self.connected = False
@@ -45,10 +49,10 @@ class EMGTCPClient:
                 self.connected = False
                 return None
             
-            # Convert received bytes to numpy array
-            # Reshape to (channels, samples)
             data_array = np.frombuffer(data, dtype=np.float32).reshape(self.CHANNELS, self.SAMPLES_PER_PACKET)
-            
+
+            self.points_received += data_array.shape[1]
+            #print(f"Points received: {self.points_received}, Time passed: {time.time() - self.t0:.2f} s. Ratio: {self.points_received / (time.time() - self.t0):.2f} points/s")
             return data_array
             
         except Exception as e:

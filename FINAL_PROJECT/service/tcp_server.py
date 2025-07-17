@@ -17,7 +17,7 @@ class EMGTCPServer:
         self.CHANNELS = 32
         self.SAMPLES_PER_PACKET = 18
         self.load_data()
-        self.sleep_time = self.SAMPLES_PER_PACKET / self.sampling_rate # Adjust sleep time based on sampling rate
+        self.sleep_time = 0.009 # self.SAMPLES_PER_PACKET / self.sampling_rate # Adjust sleep time based on sampling rate
 
     def load_data(self):
         """Load the EMG data from the PKL file"""
@@ -77,20 +77,17 @@ class EMGTCPServer:
             num_windows = self.emg_signal.shape[2]
             window_index = 0
 
+            next_time = time.time()
             while self.running and window_index < num_windows:
-                # Get the current window of data
                 current_window = self.emg_signal[..., window_index]
-                
-                # Print the data before sending
-                # self.print_data(current_window, window_index)
-                
-                # Convert the data to bytes and send
                 data_bytes = current_window.tobytes()
                 client_socket.sendall(data_bytes)
-                
-                # Calculate sleep time based on original sampling rate
-                # Since we're sending 18 samples at a time, we need to adjust the sleep time
-                time.sleep(self.sleep_time)
+
+                window_index = (window_index + 1) % num_windows
+                next_time += self.sleep_time
+                sleep_duration = next_time - time.time()
+                if sleep_duration > 0:
+                    time.sleep(sleep_duration)
                 
                 window_index += 1
 

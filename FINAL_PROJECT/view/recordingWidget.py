@@ -137,6 +137,27 @@ class RecordingPlotWidget(QWidget):
             self.record_mode_group.addButton(btn)
             control_layout.addWidget(btn)
 
+        # Clear Recording Button
+        self.clear_button = QPushButton("Clear Recording")
+        self.clear_button.setFixedSize(140, 40)
+        self.clear_button.setStyleSheet("""
+            QPushButton {
+                font-size: 13px;
+                padding: 6px;
+                background-color: #b00020;
+                color: white;
+                border: none;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #d32f2f;
+            }
+            QPushButton:pressed {
+                background-color: #7f0000;
+            }
+        """)
+        control_layout.addWidget(self.clear_button)
+
 
     def update_data(self, time_axis, data):
         """Update the plot with new data"""
@@ -152,7 +173,7 @@ class RecordingPlotWidget(QWidget):
         self.ax.set_ylabel("EMG Signal", color='white')
         self.ax.tick_params(colors='white')
         self.ax.grid(True, color='white', linestyle='--', linewidth=0.5)
-        self.ax.set_xlim(time_axis[0], time_axis[-1])
+        # self.ax.set_xlim(time_axis[0], time_axis[-1])
 
         self.canvas.draw()
         self.canvas.flush_events()

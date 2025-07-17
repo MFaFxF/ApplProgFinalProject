@@ -6,6 +6,7 @@ from service.tcp_server import EMGTCPServer
 # from tcp_server import EMGTCPServer
 import numpy as np
 
+
 class LiveSignalBuffer:
     def __init__(self, channels=32, window_samples=2048):
         self.buffer = np.zeros((channels, window_samples), dtype=np.float32)
@@ -28,6 +29,8 @@ class SignalProcessor:
         self.live_signal_buffer = LiveSignalBuffer()
         self.live_window = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32) # main output of this class
 
+        self.recorded_signal = None
+
         self.got_new_data = False
 
     def start_server(self):
@@ -46,12 +49,25 @@ class SignalProcessor:
             if new_data is not None:
                 self.got_new_data = True
                 self.live_window = self.live_signal_buffer.update(new_data)
+                if self.recorded_signal is not None:
+                    self.recorded_signal = np.concatenate((self.recorded_signal, new_data), axis=1)
+                else:
+                    self.recorded_signal = new_data
             else:
                 print("No new data received, waiting...")
     
     def generate_signal(self):
         self.start_server()
         self.start_client()
+        print("Signal generation started.")
+
+    def stop_signal(self):
+        self.tcp_client.close()
+        self.tcp_server.stop()
+        print("Signal generation stopped.")
+
+    def clear_recording(self):
+        self.recorded_signal = None
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt

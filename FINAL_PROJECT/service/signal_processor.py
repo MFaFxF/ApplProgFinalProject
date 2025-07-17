@@ -11,10 +11,16 @@ class LiveSignalBuffer:
     def __init__(self, channels=32, window_samples=20000):
         self.buffer = np.zeros((channels, window_samples), dtype=np.float32)
 
+        self.points_received = 0
+        self.t0 = time.time()
+
     def update(self, new_data):
         _, num_new_samples = new_data.shape
         self.buffer = np.roll(self.buffer, -num_new_samples, axis=1)
         self.buffer[:, -num_new_samples:] = new_data
+        self.points_received += num_new_samples
+        # print(f"Points received: {self.points_received}, New samples: {num_new_samples}")
+        # print(f"Time passed: {time.time() - self.t0:.2f} s")
         return self.buffer
 
 
@@ -25,13 +31,13 @@ class SignalProcessor:
 
         self.sampling_rate = self.tcp_server.sampling_rate
         self.sleep_time = self.tcp_server.sleep_time
-        self.live_window_size = 10 * self.tcp_server.sampling_rate
+        self.live_window_size = 5 * self.tcp_server.sampling_rate
         self.num_channels = 32
 
         self.live_signal_buffer = LiveSignalBuffer(channels=self.num_channels, window_samples=self.live_window_size)
         self.live_signal = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32) # main output of this class
 
-        self.recorded_signal = None
+        self.recorded_signal = self.live_signal.copy()  # Start with the same data as live
 
         self.got_new_data = False
 
@@ -48,13 +54,14 @@ class SignalProcessor:
         self.tcp_client.connect()
         while self.tcp_client.connected:
             new_data = self.tcp_client.receive_data()
+
             if new_data is not None:
                 self.got_new_data = True
                 self.live_signal = self.live_signal_buffer.update(new_data)
-                if self.recorded_signal is not None:
-                    self.recorded_signal = np.concatenate((self.recorded_signal, new_data), axis=1)
-                else:
-                    self.recorded_signal = new_data
+
+                self.recorded_signal = np.concatenate((self.recorded_signal, new_data), axis=1)
+                
+                
             else:
                 print("No new data received, waiting...")
     
@@ -69,7 +76,7 @@ class SignalProcessor:
         print("Signal generation stopped.")
 
     def clear_recording(self):
-        self.recorded_signal = None
+        self.recorded_signal = np.zeros_like(self.live_signal[:, -18:])   # Reset recorded signal to live signal
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt

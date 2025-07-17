@@ -1,6 +1,6 @@
 from vispy import app, scene
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QButtonGroup, QFrame, QSizePolicy
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt
 import numpy as np
 
 class LivePlotWidget(QWidget):
@@ -48,7 +48,7 @@ class LivePlotWidget(QWidget):
 
         # Line plot
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene)
-        self.view.camera.set_range(x=(1, 10), y=(-50000, 50000))
+        self.view.camera.set_range(x=(0, 10), y=(-50000, 50000))
 
         # Buttons (right column)
         button_layout = QVBoxLayout()

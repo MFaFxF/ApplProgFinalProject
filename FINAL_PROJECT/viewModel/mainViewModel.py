@@ -2,6 +2,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 import numpy as np
 from service.signal_processor import SignalProcessor
 from scipy.signal import hilbert, butter, lfilter
+import time
 
 class MainViewModel(QObject):
     live_data_updated = pyqtSignal(np.ndarray, np.ndarray)
@@ -16,7 +17,8 @@ class MainViewModel(QObject):
         self.sleep_time = self.signal_processor.sleep_time
 
         self.live_data = self.signal_processor.live_signal
-        self.live_data_time_points = np.linspace(0, self.signal_processor.live_window_size / self.sampling_rate, self.signal_processor.live_window_size)
+        self.live_window_size = self.signal_processor.live_window_size
+        self.live_data_time_points = np.linspace(0, self.live_window_size / self.sampling_rate, self.signal_processor.live_window_size)
 
         self.processed_live_data = self.live_data  # Initially, processed data is the same as live data
 
@@ -35,11 +37,15 @@ class MainViewModel(QObject):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_live_data)
         self.timer.timeout.connect(self.update_recorded_data)
-        self.timer.start(int(self.sleep_time * 1000))  # Synchronize with tcp server
+        self.timer.start(9)  # Synchronize with tcp server
 
+        # self.point_counter_timer = QTimer()
+        # t0 = time.time()
+        # self.point_counter_timer.timeout.connect(lambda: print(f"Recorded Data Points: {self.recorded_data.shape[1]}, Time: {time.time() - t0:.2f} s"))
+        # self.point_counter_timer.start(1000)  # Print every second
 
     def set_live_channel(self, channel):
-        self.live_channel = channel
+        self.live_channel = channel - 1
         self.update_live_data()
 
 
@@ -49,12 +55,18 @@ class MainViewModel(QObject):
 
     
     def set_recording_channel(self, channel):
-        self.recording_channel = channel
+        self.recording_channel = channel - 1
         self.update_recorded_data()
 
 
     def set_recording_processing_mode(self, mode):
         self.recording_processing_mode = mode
+        self.update_recorded_data()
+        
+    def clear_recording(self):
+        # self.recorded_data = None
+        # self.processed_recorded_data = None
+        self.signal_processor.clear_recording()
         self.update_recorded_data()
 
 
@@ -62,15 +74,13 @@ class MainViewModel(QObject):
         if mode == 'raw':
             return data
         elif mode == 'rms':
-            print("Processing RMS", data.shape)
-            print("after processing RMS", self.apply_rms(data).shape)
             return self.apply_rms(data)
         elif mode == 'envelope':
             return self.apply_envelope(data)
         elif mode == 'filter':
             return self.apply_filter(data)
         return data
-    
+
 
     def apply_rms(self, data):
         squared = np.square(data)
@@ -93,21 +103,25 @@ class MainViewModel(QObject):
         if self.is_receiving:
             self.live_data = self.signal_processor.live_signal
         
-        # process data of current channel
-        print("live data size: ", self.live_data.shape)
         self.processed_live_data = self.process_signal(self.live_data[self.live_channel, :], self.live_processing_mode)
-        print("no of live time points: ", self.processed_live_data.shape[0])
-        # exit()
-
         self.live_data_updated.emit(self.live_data_time_points, self.processed_live_data)
 
 
     def update_recorded_data(self):
         if self.is_receiving:
-            self.recorded_data = np.concatenate((self.recorded_data, self.signal_processor.live_signal), axis=1)
+            # Update recorded data with the latest live signal
 
+            # self.recorded_data = np.concatenate((self.recorded_data, self.signal_processor.live_signal[:, -18:]), axis=1)
+            self.recorded_data = self.signal_processor.recorded_signal
+
+        if self.recorded_data is None:
+            self.recorded_data = np.zeros_like(self.signal_processor.live_signal[:, -18:])  # Start with the last 18 samples
         # process data of current channel
         self.processed_recorded_data = self.process_signal(self.recorded_data[self.recording_channel, :], self.recording_processing_mode)
         self.recorded_data_time_points = np.linspace(0, self.processed_recorded_data.shape[0] / self.sampling_rate, self.processed_recorded_data.shape[0])
-        print("no of time points: ", self.recorded_data_time_points.shape[0])
+        # print sampling rate and time points
+        # print(f"Sampling Rate: {self.sampling_rate} Hz")
+        # print(f"Recorded Data Time Points: {self.recorded_data_time_points.shape[0]}")
+        # print(f"Seconds: {self.recorded_data_time_points[-1]} s")
+        
         self.recorded_data_updated.emit(self.recorded_data_time_points, self.processed_recorded_data)
