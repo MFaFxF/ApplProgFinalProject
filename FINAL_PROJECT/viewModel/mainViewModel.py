@@ -147,9 +147,5 @@ class MainViewModel(QObject):
         # process data of current channel
         self.processed_recorded_data = self.process_signal(self.recorded_data[self.recording_channel, :], self.recording_processing_mode)
         self.recorded_data_time_points = np.linspace(0, self.processed_recorded_data.shape[0] / self.sampling_rate, self.processed_recorded_data.shape[0])
-        # print sampling rate and time points
-        # print(f"Sampling Rate: {self.sampling_rate} Hz")
-        # print(f"Recorded Data Time Points: {self.recorded_data_time_points.shape[0]}")
-        # print(f"Seconds: {self.recorded_data_time_points[-1]} s")
         
         self.recorded_data_updated.emit(self.recorded_data_time_points, self.processed_recorded_data)

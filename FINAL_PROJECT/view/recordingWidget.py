@@ -191,6 +191,17 @@ class RecordingPlotWidget(QWidget):
         else:
             self.toolbar.hide()
 
+    def clear_plot(self):
+        """Clear the plot area and redraw an empty canvas"""
+        self.ax.clear()
+        self.ax.set_facecolor("black")
+        self.ax.set_title("EMG Recording", color='white')
+        self.ax.set_xlabel("Time (s)", color='white')
+        self.ax.set_ylabel("EMG Signal", color='white')
+        self.ax.tick_params(colors='white')
+        self.ax.grid(True, color='white', linestyle='--', linewidth=0.1)
+        self.canvas.draw()
+
 
     def update_data(self, time_axis, data):
         """Update the plot with new data"""

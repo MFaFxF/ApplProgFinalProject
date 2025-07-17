@@ -62,22 +62,26 @@ class MainView(QMainWindow):
         central_layout.addWidget(separator)
 
         # -- recording widget --
-        recording_widget = RecordingPlotWidget(self.view_model)
-        central_layout.addWidget(recording_widget)
-        recording_widget.setStyleSheet("background-color: #1e1e1e;")
+        self.recording_widget = RecordingPlotWidget(self.view_model)
+        central_layout.addWidget(self.recording_widget)
+        self.recording_widget.setStyleSheet("background-color: #1e1e1e;")
 
         # connect buttons
-        recording_widget.channel_selector.valueChanged.connect(view_model.set_recording_channel)
-        recording_widget.record_raw_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('raw') if checked else None)
-        recording_widget.record_rms_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('rms') if checked else None)
-        recording_widget.record_envelope_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('envelope') if checked else None)
-        recording_widget.record_filter_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('filter') if checked else None)
+        self.recording_widget.channel_selector.valueChanged.connect(view_model.set_recording_channel)
+        self.recording_widget.record_raw_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('raw') if checked else None)
+        self.recording_widget.record_rms_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('rms') if checked else None)
+        self.recording_widget.record_envelope_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('envelope') if checked else None)
+        self.recording_widget.record_filter_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('filter') if checked else None)
 
         # connect data
-        view_model.recorded_data_updated.connect(recording_widget.update_data)
-        recording_widget.clear_button.clicked.connect(view_model.clear_recording)
+        view_model.recorded_data_updated.connect(self.recording_widget.update_data)
+        self.recording_widget.clear_button.clicked.connect(self.clear_recording_and_plot)
+        # self.recording_widget.start_stop_button.clicked.connect(self.handle_start_stop)
 
-        
+    def clear_recording_and_plot(self):
+        self.view_model.clear_recording()
+        self.recording_widget.clear_plot()
+
     def handle_start_stop(self):
         if self.view_model.is_receiving:
             self.view_model.is_receiving = False
