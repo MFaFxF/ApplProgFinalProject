@@ -158,6 +158,15 @@ class RecordingPlotWidget(QWidget):
         """)
         control_layout.addWidget(self.clear_button)
 
+    
+    def toggle_toolbar_visible(self, visible):
+        """Toggle visibility of the toolbar"""
+        self.toolbar.setVisible(visible)
+        if visible:
+            self.toolbar.show()
+        else:
+            self.toolbar.hide()
+
 
     def update_data(self, time_axis, data):
         """Update the plot with new data"""
@@ -165,14 +174,14 @@ class RecordingPlotWidget(QWidget):
         self.data = data
 
         self.ax.clear()
-        self.ax.plot(time_axis, data, color='lime', linewidth=1)
+        self.ax.plot(time_axis, data, color='white', linewidth=1)
 
         self.ax.set_facecolor("black")
         self.ax.set_title("EMG Recording", color='white')
         self.ax.set_xlabel("Time (s)", color='white')
         self.ax.set_ylabel("EMG Signal", color='white')
         self.ax.tick_params(colors='white')
-        self.ax.grid(True, color='white', linestyle='--', linewidth=0.5)
+        self.ax.grid(True, color='white', linestyle='-', linewidth=0.1)
         # self.ax.set_xlim(time_axis[0], time_axis[-1])
 
         self.canvas.draw()

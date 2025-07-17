@@ -44,7 +44,7 @@ class LivePlotWidget(QWidget):
         self.view.border_color = 'white'
         yaxis.link_view(self.view)
 
-        scene.visuals.GridLines(parent=self.view.scene)
+        scene.visuals.GridLines(parent=self.view.scene, color='grey')
 
         # Line plot
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene)
