@@ -61,8 +61,6 @@ class SignalProcessor:
                 self.live_signal = self.live_signal_buffer.update(new_data)
 
                 self.recorded_signal = np.concatenate((self.recorded_signal, new_data), axis=1)
-                
-                
             else:
                 print("No new data received, waiting...")
 

@@ -7,14 +7,12 @@ class LivePlotWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Live Plot")
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.channel = 0
 
         layout = QHBoxLayout()
         self.setLayout(layout)
-        self.canvas = scene.SceneCanvas(keys='interactive', size=(800, 400))
-        layout.addWidget(self.canvas.native)
+        self.canvas = scene.SceneCanvas(keys='interactive')
+        layout.addWidget(self.canvas.native, stretch=6)
 
         grid = self.canvas.central_widget.add_grid(margin=0)
         grid.spacing = 0
@@ -28,9 +26,9 @@ class LivePlotWidget(QWidget):
         # Y Axis (left)
         yaxis = scene.AxisWidget(
             orientation='left',
-            axis_label='Y Axis',
+            axis_label='EMG Signal',
             axis_font_size=12,
-            axis_label_margin=50,
+            axis_label_margin=30,
             tick_label_margin=5,
         )
 
@@ -53,28 +51,36 @@ class LivePlotWidget(QWidget):
         # Buttons (right column)
         button_layout = QVBoxLayout()
 
+        button_layout.setContentsMargins(10,10,10,10)
+        frame = QFrame()
+        frame.setFrameShape(QFrame.VLine)
+        frame.setFrameShadow(QFrame.Sunken)
+        layout.insertWidget(1, frame)
+
         # Start/Stop Button
         self.start_stop_button = QPushButton("Start")
         self.start_stop_button.setCheckable(True)
         self.start_stop_button.setChecked(False)
-        self.start_stop_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.start_stop_button.setStyleSheet(
-            """
+        #self.start_stop_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.start_stop_button.setStyleSheet(    
+        """
             QPushButton {
-                font-size: 14px;
-                padding: 8px;
+                font-size: 16px;
+                padding: 10px 16px;
                 background-color: #4CAF50;
                 color: white;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
             }
             QPushButton:hover {
                 background-color: #45a049;
             }
-            """
+            QPushButton:checked {
+                background-color: #f44336;
+            }
+        """
         )
         self.start_stop_button.clicked.connect(self.change_button_style)
-        button_layout.addWidget(self.start_stop_button)
 
         # Channel Selector
         self.channel_selector = QSpinBox()
@@ -88,6 +94,7 @@ class LivePlotWidget(QWidget):
                 padding: 4px;
                 color: white;
                 border-radius: 4px;
+                background-color: #333;
                 background: "black"
             }
             QSpinBox::up-button, QSpinBox::down-button {
@@ -116,30 +123,31 @@ class LivePlotWidget(QWidget):
         self.envelope_button.setCheckable(True)
 
         for btn in [self.raw_button, self.filter_button, self.rms_button, self.envelope_button]:
-            btn.setFixedSize(100, 40)
-            btn.setStyleSheet(
-                """
+            btn.setMinimumSize(100, 40)
+            btn.setStyleSheet(   
+            """
                 QPushButton {
-                    font-size: 13px;
-                    padding: 6px;
-                    background-color: #444;
+                    background-color: #2c2c2c;
                     color: white;
-                    border: none;
+                    font-size: 14px;
+                    border: 1px solid #444;
                     border-radius: 4px;
-                }
-                QPushButton:checked {
-                    background-color: #2196F3;
+                    padding: 6px;
                 }
                 QPushButton:hover {
-                    background-color: #666;
+                    background-color: #3a3a3a;
                 }
-                """
+                QPushButton:checked {
+                    background-color: #007acc;
+                    border: 1px solid #005f99;
+                }
+            """
             )
             self.mode_button_group.addButton(btn)
 
         # Wrap mode buttons in a frame for white border
-        mode_button_frame = QWidget()
-        mode_button_frame.setStyleSheet(
+        toolbar_frame = QWidget()
+        toolbar_frame.setStyleSheet(
             """
             QWidget {
                 border: 2px solid white;
@@ -147,18 +155,22 @@ class LivePlotWidget(QWidget):
             }
             """
         )
-        mode_layout = QVBoxLayout()
-        mode_layout.addWidget(self.raw_button)
-        mode_layout.addWidget(self.filter_button)
-        mode_layout.addWidget(self.rms_button)
-        mode_layout.addWidget(self.envelope_button)
-        mode_layout.setAlignment(Qt.AlignTop)
-        mode_layout.setSizeConstraint(QVBoxLayout.SetMinimumSize)
+        toolbar_layout = QVBoxLayout()
+        toolbar_layout.setSpacing(10)
+        toolbar_layout.setContentsMargins(10, 10, 10, 10)
+        toolbar_layout.addWidget(self.start_stop_button)
+        toolbar_layout.addWidget(self.channel_selector)
+        toolbar_layout.addWidget(self.raw_button)
+        toolbar_layout.addWidget(self.filter_button)
+        toolbar_layout.addWidget(self.rms_button)
+        toolbar_layout.addWidget(self.envelope_button)
+        toolbar_layout.setAlignment(Qt.AlignTop)
+        toolbar_layout.setSizeConstraint(QVBoxLayout.SetMinimumSize)
 
-        mode_button_frame.setLayout(mode_layout)
-        mode_button_frame.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        button_layout.addWidget(mode_button_frame)
+        toolbar_frame.setLayout(toolbar_layout)
+        toolbar_frame.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        button_layout.setSpacing(10)
+        button_layout.addWidget(toolbar_frame)
 
         layout.addLayout(button_layout)
 
@@ -168,7 +180,7 @@ class LivePlotWidget(QWidget):
         self.live_signal = data
         line_data = np.column_stack((time_points, data))
         self.line.set_data(line_data)
-        self.canvas.update()
+        self.canvas.native.update()
 
 
     def change_button_style(self):

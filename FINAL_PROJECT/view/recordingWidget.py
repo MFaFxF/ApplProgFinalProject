@@ -7,15 +7,14 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QSizePolicy, QButtonGroup
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QSizePolicy, QButtonGroup , QMessageBox ,QFileDialog
 )
 from PyQt5.QtCore import Qt
 
-
-
 class RecordingPlotWidget(QWidget):
-    def __init__(self):
+    def __init__(self, view_model):
         super().__init__()
+        self.view_model = view_model
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     
@@ -27,7 +26,7 @@ class RecordingPlotWidget(QWidget):
         # === Plot Area (Canvas + Toolbar) ===
         plot_container = QWidget()
         plot_layout = QVBoxLayout()
-        plot_layout.setContentsMargins(0, 0, 0, 0)
+        plot_layout.setContentsMargins(5, 5, 5, 5)
         plot_container.setLayout(plot_layout)
 
 
@@ -73,6 +72,12 @@ class RecordingPlotWidget(QWidget):
         # === Control Panel ===
         control_layout = QVBoxLayout()
         control_layout.setAlignment(Qt.AlignTop)
+        control_layout.setContentsMargins(10,10,10,10)
+        
+        control_frame = QWidget()
+        control_frame.setLayout(control_layout)
+        control_frame.setStyleSheet("background-color: #1e1e1e; border: 1px solid #333;")
+        horizontal_layout.addWidget(control_frame)
 
         # Channel Selector
         self.channel_selector = QSpinBox()
@@ -97,7 +102,6 @@ class RecordingPlotWidget(QWidget):
 
         control_layout.addWidget(self.channel_selector)
 
-        horizontal_layout.addLayout(control_layout)
         main_layout.addLayout(horizontal_layout)
 
         self.record_mode_group = QButtonGroup(self)
@@ -116,26 +120,46 @@ class RecordingPlotWidget(QWidget):
         self.record_filter_button = QPushButton("Filter")
         self.record_filter_button.setCheckable(True)
 
+        self.export_button = QPushButton("Export")
+        self.export_button.setCheckable(True)
+
         for btn in [self.record_raw_button, self.record_rms_button, self.record_envelope_button, self.record_filter_button]:
-            btn.setFixedSize(100, 40)
+            btn.setMaximumSize(100, 40)
             btn.setStyleSheet("""
                 QPushButton {
-                    font-size: 13px;
-                    padding: 6px;
-                    background-color: #444;
+                    font-size: 14px;
+                    padding: 8px;
+                    background-color: #2c2c2c;
                     color: white;
-                    border: none;
-                    border-radius: 4px;
+                    border: 1px solid #555;
+                    border-radius: 6px;
+                }
+                QPushButton:hover {
+                    background-color: #3a3a3a;
                 }
                 QPushButton:checked {
                     background-color: #2196F3;
                 }
-                QPushButton:hover {
-                    background-color: #666;
-                }
             """)
             self.record_mode_group.addButton(btn)
             control_layout.addWidget(btn)
+
+
+        self.export_button.setStyleSheet("""
+        QPushButton {
+            background-color: #444;
+            color: white;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+        QPushButton:hover {
+            background-color: #555;
+        }
+        """)
+        self.export_button.clicked.connect(self.view_model.export_results)
+        control_layout.addWidget(self.export_button)
+        control_layout.setSpacing(10)
 
         # Clear Recording Button
         self.clear_button = QPushButton("Clear Recording")
@@ -182,7 +206,7 @@ class RecordingPlotWidget(QWidget):
         self.ax.set_ylabel("EMG Signal", color='white')
         self.ax.tick_params(colors='white')
         self.ax.grid(True, color='white', linestyle='-', linewidth=0.1)
-        # self.ax.set_xlim(time_axis[0], time_axis[-1])
 
+        self.figure.tight_layout()
         self.canvas.draw()
         self.canvas.flush_events()
