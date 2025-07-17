@@ -39,7 +39,7 @@ class SignalProcessor:
 
         self.recorded_signal = self.live_signal.copy()  # Start with the same data as live
 
-        self.got_new_data = False
+        self.is_recording = False
 
     def start_server(self):
         self.server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
@@ -54,7 +54,8 @@ class SignalProcessor:
         self.tcp_client.connect()
         while self.tcp_client.connected:
             new_data = self.tcp_client.receive_data()
-
+            if not self.is_recording:
+                continue
             if new_data is not None:
                 self.got_new_data = True
                 self.live_signal = self.live_signal_buffer.update(new_data)
@@ -64,7 +65,7 @@ class SignalProcessor:
                 
             else:
                 print("No new data received, waiting...")
-    
+
     def generate_signal(self):
         self.start_server()
         self.start_client()

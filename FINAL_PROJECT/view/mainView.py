@@ -8,6 +8,7 @@ class MainView(QMainWindow):
     def __init__(self, view_model):
         super().__init__()
         self.view_model = view_model
+        self.signal_processor = view_model.signal_processor
 
         # Set window title, size
         self.setWindowTitle("Applied Programming - EMG Data Viewer")
@@ -65,7 +66,9 @@ class MainView(QMainWindow):
     def handle_start_stop(self):
         if self.view_model.is_receiving:
             self.view_model.is_receiving = False
+            self.signal_processor.is_recording = False
             self.view_model.timer.stop()
         else:
             self.view_model.is_receiving = True
+            self.signal_processor.is_recording = True
             self.view_model.timer.start(int(self.view_model.sleep_time))
