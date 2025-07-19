@@ -12,7 +12,6 @@ class EMGTCPClient:
         self.SAMPLES_PER_PACKET = 18
         self.window_count = 0
 
-        self.points_received = 0
         self.t0 = time.time()
 
     def print_data(self, data):
@@ -51,8 +50,6 @@ class EMGTCPClient:
             
             data_array = np.frombuffer(data, dtype=np.float32).reshape(self.CHANNELS, self.SAMPLES_PER_PACKET)
 
-            self.points_received += data_array.shape[1]
-            #print(f"Points received: {self.points_received}, Time passed: {time.time() - self.t0:.2f} s. Ratio: {self.points_received / (time.time() - self.t0):.2f} points/s")
             return data_array
             
         except Exception as e:

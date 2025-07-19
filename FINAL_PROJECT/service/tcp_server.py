@@ -17,7 +17,9 @@ class EMGTCPServer:
         self.CHANNELS = 32
         self.SAMPLES_PER_PACKET = 18
         self.load_data()
-        self.sleep_time = 0.009 # self.SAMPLES_PER_PACKET / self.sampling_rate # Adjust sleep time based on sampling rate
+        
+        # calculate sleep time based on sampling rate and samples per packet
+        self.sleep_time = self.SAMPLES_PER_PACKET / self.sampling_rate
 
     def load_data(self):
         """Load the EMG data from the PKL file"""
@@ -84,6 +86,8 @@ class EMGTCPServer:
                 client_socket.sendall(data_bytes)
 
                 window_index = (window_index + 1) % num_windows
+
+                # Ensure constant sampling rate
                 next_time += self.sleep_time
                 sleep_duration = next_time - time.time()
                 if sleep_duration > 0:

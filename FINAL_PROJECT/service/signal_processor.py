@@ -2,102 +2,144 @@ import threading
 import time
 from service.tcp_client import EMGTCPClient
 from service.tcp_server import EMGTCPServer
-# from tcp_client import EMGTCPClient
-# from tcp_server import EMGTCPServer
 import numpy as np
 
 
 class LiveSignalBuffer:
-    def __init__(self, channels=32, window_samples=20000):
-        self.buffer = np.zeros((channels, window_samples), dtype=np.float32)
+    """
+    Rolling buffer for latest live signal data
+    for visualization or further processing.
+    Stores all 32 channels. Fixed length.
+    """
 
-        self.points_received = 0
+    def __init__(self, channels=32, window_samples=20000):
+        """
+        Initialize the live signal buffer.
+
+        Parameters:
+        - channels (int): Number of channels (e.g., 32 EMG electrodes).
+        - window_samples (int): Number of samples to retain in the buffer.
+          Typically calculated as (sampling_rate * window_size).
+        """
+        self.buffer = np.zeros((channels, window_samples), dtype=np.float32)
         self.t0 = time.time()
 
     def update(self, new_data):
+        """
+        Update the buffer with new incoming data.
+
+        Parameters:
+        - new_data (np.ndarray): New signal data of shape (channels, samples).
+
+        Returns:
+        - np.ndarray: Buffer of same length with added new_data.
+        """
         _, num_new_samples = new_data.shape
         self.buffer = np.roll(self.buffer, -num_new_samples, axis=1)
         self.buffer[:, -num_new_samples:] = new_data
-        self.points_received += num_new_samples
-        # print(f"Points received: {self.points_received}, New samples: {num_new_samples}")
-        # print(f"Time passed: {time.time() - self.t0:.2f} s")
         return self.buffer
 
 
 class SignalProcessor:
+    """
+    Manages live signal processing via TCP client-server communication.
+
+    This class:
+    - Starts a TCP server to simulate live EMG data acquisition.
+    - Connects a client to receive data.
+    - Buffers live signal data for visualization.
+    - Saves a recording of the live signal.
+    - Exposes them for visualization or further processing.
+    """
+
     def __init__(self):
+        """
+        Initialize the signal processor with TCP client and server.
+
+        Set up:
+        - TCP server and client
+        - Sampling configuration
+        - Live signal buffer and output
+        - Signal recording
+        """
+        # Initialize TCP server and client
         self.tcp_server = EMGTCPServer()
         self.tcp_client = EMGTCPClient()
 
+
+        # Configure sampling parameters
         self.sampling_rate = self.tcp_server.sampling_rate
         self.sleep_time = self.tcp_server.sleep_time
-        self.live_window_size = 5 * self.tcp_server.sampling_rate
+        self.live_window_size = 5 * self.tcp_server.sampling_rate # 5 seconds of data
         self.num_channels = 32
 
-        self.live_signal_buffer = LiveSignalBuffer(channels=self.num_channels, window_samples=self.live_window_size)
-        self.live_signal = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32) # main output of this class
+        # Create buffer for live signal data
+        self.live_signal_buffer = LiveSignalBuffer(
+            channels=self.num_channels, 
+            window_samples=self.live_window_size
+        )
 
-        self.recorded_signal = self.live_signal.copy()  # Start with the same data as live
+        # Initialize live signal and recording storage
+        self.live_signal = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32)
+        self.recorded_signal = self.live_signal.copy()
 
+        # Recording state
         self.is_recording = False
 
     def start_server(self):
+        """
+        Start the TCP server thread.
+        """
         self.server_thread = threading.Thread(target=self.tcp_server.start, daemon=True)
         self.server_thread.start()
-        time.sleep(1)
+        time.sleep(1)  # Give server time to start
 
     def start_client(self):
+        """
+        Start the TCP client thread
+        """
         self.client_thread = threading.Thread(target=self.run_client, daemon=True)
         self.client_thread.start()
 
     def run_client(self):
+        """
+        Connect the client and continuously receive data.
+        Update live signal and recording.
+        """
         self.tcp_client.connect()
+
         while self.tcp_client.connected:
+            # Receive the latest data from the server
             new_data = self.tcp_client.receive_data()
+
+            # If recording is active, update the live signal buffer and recorded signal
             if not self.is_recording:
                 continue
             if new_data is not None:
-                self.got_new_data = True
                 self.live_signal = self.live_signal_buffer.update(new_data)
-
                 self.recorded_signal = np.concatenate((self.recorded_signal, new_data), axis=1)
             else:
                 print("No new data received, waiting...")
 
     def generate_signal(self):
+        """
+        Main entry point for signal generation.
+        Start TCP server and client to begin live data streaming.
+        """
         self.start_server()
         self.start_client()
         print("Signal generation started.")
 
     def stop_signal(self):
+        """
+        Stop data acquisition by closing the client and server.
+        """
         self.tcp_client.close()
         self.tcp_server.stop()
         print("Signal generation stopped.")
 
     def clear_recording(self):
-        self.recorded_signal = np.zeros_like(self.live_signal[:, -18:])   # Reset recorded signal to live signal
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    # Initialize processor
-    processor = SignalProcessor()
-    processor.generate_signal()  # starts server and client
-
-    # Setup interactive plotting
-    plt.ion()
-    fig, ax = plt.subplots()
-    line, = ax.plot(np.zeros(processor.live_window_size))
-    ax.set_ylim(-1, 1)  # adjust depending on expected signal range
-    ax.set_title("Live EMG Signal - Channel 0")
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Amplitude")
-
-    try:
-        while True:
-            signal = processor.live_signal[0, :]  # channel 0
-            line.set_ydata(signal)
-            fig.canvas.draw()
-            fig.canvas.flush_events()
-            time.sleep(0.05)  # match your QTimer update rate (50ms)
-    except KeyboardInterrupt:
-        print("Stopped.")
+        """
+        Reset the recorded signal to one sample of zeroes.
+        """
+        self.recorded_signal = np.zeros_like(self.live_signal[:, -1:])
