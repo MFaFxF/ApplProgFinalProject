@@ -92,7 +92,6 @@ class MainView(QMainWindow):
         # Connect recorded data update and clear button
         view_model.recorded_data_updated.connect(self.recording_widget.update_data)
         self.recording_widget.clear_button.clicked.connect(self.clear_recording_and_plot)
-        # self.recording_widget.start_stop_button.clicked.connect(self.handle_start_stop)
 
     def clear_recording_and_plot(self):
         """

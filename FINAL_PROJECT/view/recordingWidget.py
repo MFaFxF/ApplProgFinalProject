@@ -12,28 +12,43 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 
 class RecordingPlotWidget(QWidget):
+    """
+    Widget for displaying and managing recorded EMG data.
+
+    This widget includes:
+    - A matplotlib plot area with toolbar
+    - A control panel for:
+        - Channel selection
+        - Signal processing mode (Raw, RMS, Envelope, Filter)
+        - Exporting the current recording
+        - Clearing the recorded data
+    """
+
     def __init__(self, view_model):
+        """
+        Initialize the recording plot widget.
+
+        Parameters:
+        - view_model: Reference to the main ViewModel for triggering exports and state control.
+        """
         super().__init__()
         self.view_model = view_model
-
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-    
         self.channel = 0
 
+        # === Main layout ===
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        # === Plot Area (Canvas + Toolbar) ===
+        # === Plot container (matplotlib canvas + toolbar) ===
         plot_container = QWidget()
         plot_layout = QVBoxLayout()
         plot_layout.setContentsMargins(5, 5, 5, 5)
         plot_container.setLayout(plot_layout)
 
-
         with plt.style.context('dark_background'):
             self.figure = Figure()
             self.ax = self.figure.add_subplot(111)
-
             self.ax.set_facecolor("black")
             self.ax.set_title("EMG Recording", color='white')
             self.ax.set_xlabel("Time (s)", color='white')
@@ -61,31 +76,29 @@ class RecordingPlotWidget(QWidget):
             }
         """)
 
-
         plot_layout.addWidget(self.canvas)
         plot_layout.addWidget(self.toolbar)
 
-        # === Horizontal Layout: Plot + Controls ===
+        # === Horizontal layout for plot and controls ===
         horizontal_layout = QHBoxLayout()
         horizontal_layout.addWidget(plot_container)
 
-        # === Control Panel ===
+        # === Control panel frame ===
         control_layout = QVBoxLayout()
         control_layout.setAlignment(Qt.AlignTop)
-        control_layout.setContentsMargins(10,10,10,10)
-        
+        control_layout.setContentsMargins(10, 10, 10, 10)
+
         control_frame = QWidget()
         control_frame.setLayout(control_layout)
         control_frame.setStyleSheet("background-color: #1e1e1e; border: 1px solid #333;")
         horizontal_layout.addWidget(control_frame)
 
-        # Channel Selector
+        # === Channel selector ===
         self.channel_selector = QSpinBox()
         self.channel_selector.setRange(1, 32)
         self.channel_selector.setPrefix("Ch ")
         self.channel_selector.setFixedSize(100, 50)
-        self.channel_selector.setStyleSheet(
-            """
+        self.channel_selector.setStyleSheet("""
             QSpinBox {
                 font-size: 14px;
                 padding: 4px;
@@ -97,13 +110,12 @@ class RecordingPlotWidget(QWidget):
             QSpinBox::up-button, QSpinBox::down-button {
                 width: 16px;
             }
-            """
-        )
-
+        """)
         control_layout.addWidget(self.channel_selector)
 
         main_layout.addLayout(horizontal_layout)
 
+        # === Signal processing mode buttons ===
         self.record_mode_group = QButtonGroup(self)
         self.record_mode_group.setExclusive(True)
 
@@ -119,9 +131,6 @@ class RecordingPlotWidget(QWidget):
 
         self.record_filter_button = QPushButton("Filter")
         self.record_filter_button.setCheckable(True)
-
-        self.export_button = QPushButton("Export")
-        self.export_button.setCheckable(True)
 
         for btn in [self.record_raw_button, self.record_rms_button, self.record_envelope_button, self.record_filter_button]:
             btn.setMaximumSize(100, 40)
@@ -144,24 +153,27 @@ class RecordingPlotWidget(QWidget):
             self.record_mode_group.addButton(btn)
             control_layout.addWidget(btn)
 
-
+        # === Export button ===
+        self.export_button = QPushButton("Export")
+        self.export_button.setCheckable(True)
         self.export_button.setStyleSheet("""
-        QPushButton {
-            background-color: #444;
-            color: white;
-            font-size: 14px;
-            padding: 6px 12px;
-            border-radius: 4px;
-        }
-        QPushButton:hover {
-            background-color: #555;
-        }
+            QPushButton {
+                background-color: #444;
+                color: white;
+                font-size: 14px;
+                padding: 6px 12px;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #555;
+            }
         """)
         self.export_button.clicked.connect(self.view_model.export_results)
         control_layout.addWidget(self.export_button)
+
         control_layout.setSpacing(10)
 
-        # Clear Recording Button
+        # === Clear plot button ===
         self.clear_button = QPushButton("Clear Recording")
         self.clear_button.setFixedSize(140, 40)
         self.clear_button.setStyleSheet("""
@@ -182,9 +194,13 @@ class RecordingPlotWidget(QWidget):
         """)
         control_layout.addWidget(self.clear_button)
 
-    
     def toggle_toolbar_visible(self, visible):
-        """Toggle visibility of the toolbar"""
+        """
+        Toggle the visibility of the matplotlib toolbar.
+
+        Parameters:
+        - visible (bool): True to show, False to hide.
+        """
         self.toolbar.setVisible(visible)
         if visible:
             self.toolbar.show()
@@ -192,7 +208,9 @@ class RecordingPlotWidget(QWidget):
             self.toolbar.hide()
 
     def clear_plot(self):
-        """Clear the plot area and redraw an empty canvas"""
+        """
+        Clear the plot area and redraw an empty chart.
+        """
         self.ax.clear()
         self.ax.set_facecolor("black")
         self.ax.set_title("EMG Recording", color='white')
@@ -202,15 +220,19 @@ class RecordingPlotWidget(QWidget):
         self.ax.grid(True, color='white', linestyle='--', linewidth=0.1)
         self.canvas.draw()
 
-
     def update_data(self, time_axis, data):
-        """Update the plot with new data"""
+        """
+        Update the plot with new recorded signal data.
+
+        Parameters:
+        - time_axis (np.ndarray): 1D array of time values.
+        - data (np.ndarray): 1D array of signal values.
+        """
         self.time_axis = time_axis
         self.data = data
 
         self.ax.clear()
         self.ax.plot(time_axis, data, color='white', linewidth=1)
-
         self.ax.set_facecolor("black")
         self.ax.set_title("EMG Recording", color='white')
         self.ax.set_xlabel("Time (s)", color='white')
