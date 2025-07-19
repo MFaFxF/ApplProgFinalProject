@@ -63,16 +63,113 @@ This will launch the EMG Viewer window.
 
 ---
 
-## Notes
+## TCP Connection Specifications
 
-- All 32 channels are continuously recorded during live viewing.
-- Signal processing is applied per view and is non-destructive.
-- Export includes only the **visible** (processed) channel.
+The application uses a custom TCP-based client-server architecture to simulate a real-time EMG data stream.
+
+### Server (class EMGTCPServer)
+- Host: `localhost`
+- Port: `12345`
+- Behavior:
+  - Loads EMG data from a `recording.pkl` file
+  - Sends data packages to connected clients
+  - Automatically loops the signal when it reaches the end
+
+### Client (class EMGTCPClient)
+- Connects to the server at `localhost:12345`.
+- Receives data to simulate real EMG device
+- Decodes each data packet into a NumPy array of shape `(32, 18)` — 32 channels, 18 samples per packet.
 
 ---
 
-## 📎 Next Sections (To be added)
+###  Packet Format
+Each packet contains:
 
-- [ ] TCP Connection Specifications
-- [ ] Data Format & Structure
-- [ ] MVVM Architecture Overview
+- Data Shape: (32 channels × 18 samples)
+- Data Type: float32
+- Total Size: 32 * 18 * 4 = 2304 bytes per packet
+- Transmission Rate: One packet every **9 ms** (based on `sleep_time = 18 / 2000`)
+
+---
+
+### Timing and Flow
+
+- The server uses a timer-based loop to maintain precise timing between transmissions.
+- The client expects exactly 2304 bytes per read and reshapes it into a `(32, 18)` matrix.
+- Both server and client continue streaming until manually stopped.
+- When the end of the data is reached, it is restarted from the beginning.
+
+##  MVVM Architecture Implementation
+
+The application closely follows a **Model-View-ViewModel (MVVM)** architecture to separate data handling, business logic, and user interface logic.
+
+---
+
+### Model: `SignalProcessor`
+
+- Located in `signal_processor.py`
+- Manages core data flow:
+  - Starts the TCP server and client
+  - Receives live data from the EMG stream
+  - Buffers and records incoming signals
+- Exposes:
+  - `live_signal`: current buffer (rolling window)
+  - `recorded_signal`: full accumulation of all recorded data
+
+---
+
+### ViewModel: `MainViewModel`
+
+- Located in `main_view_model.py`
+- Acts as the central state and logic controller:
+  - Connects to `SignalProcessor`
+  - Manages current channel and processing modes (raw, RMS, filter, envelope)
+  - Applies real-time and historical signal processing
+  - Emits Qt signals to update the UI:
+    - `live_data_updated`
+    - `recorded_data_updated`
+- Handles:
+  - Timer-driven updates
+  - Channel switching
+  - Recording state
+  - CSV export of processed data
+
+---
+
+### Views
+
+#### `MainView`
+- Root layout controller (`main_view.py`)
+- Composes all widgets:
+  - `ConnectionWidget`
+  - `LivePlotWidget`
+  - `RecordingPlotWidget`
+- Connects UI events (button presses, toggles) to ViewModel methods
+
+#### `LivePlotWidget`
+- Displays real-time EMG signals using VisPy
+- Allows selection of channel and processing mode
+
+#### `RecordingPlotWidget`
+- Displays accumulated signal using Matplotlib
+- Offers export and clear functionality
+
+#### `ConnectionWidget`
+- UI widget to connect/disconnect the TCP stream
+- Visually reflects connection status
+
+---
+
+### 🔄 Data Flow Summary
+
+```
+SignalProcessor  <--->  MainViewModel  <--->  Views (LivePlot, Recording, etc)
+      ▲                                      ▲
+      │                                      │
+   TCP I/O                         User interaction (UI)
+```
+
+- The **Model** handles raw data and network.
+- The **ViewModel** transforms that data and drives UI behavior.
+- The **Views** are presentation-only and signal user intent back to the ViewModel.
+
