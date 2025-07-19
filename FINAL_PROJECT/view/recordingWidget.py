@@ -89,6 +89,9 @@ class RecordingPlotWidget(QWidget):
         control_frame = QWidget()
         control_frame.setLayout(control_layout)
         control_frame.setStyleSheet("background-color: #1e1e1e; border: 1px solid #333;")
+        
+        control_frame.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+
         horizontal_layout.addWidget(control_frame)
 
         # === Channel selector ===
@@ -200,10 +203,6 @@ class RecordingPlotWidget(QWidget):
         - visible (bool): True to show, False to hide.
         """
         self.toolbar.setVisible(visible)
-        if visible:
-            self.toolbar.show()
-        else:
-            self.toolbar.hide()
 
     def clear_plot(self):
         """
