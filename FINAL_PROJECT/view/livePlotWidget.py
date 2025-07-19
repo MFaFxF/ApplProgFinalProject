@@ -72,7 +72,6 @@ class LivePlotWidget(QWidget):
 
         # === Line plot ===
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene)
-        self.view.camera.set_range(x=(0, 10), y=(-50000, 50000)) #TODO dynamic range
 
         # === Toolbar layout ===
         button_layout = QVBoxLayout()

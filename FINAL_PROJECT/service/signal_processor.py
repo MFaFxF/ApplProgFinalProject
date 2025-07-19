@@ -70,7 +70,8 @@ class SignalProcessor:
         # Configure sampling parameters
         self.sampling_rate = self.tcp_server.sampling_rate
         self.sleep_time = self.tcp_server.sleep_time
-        self.live_window_size = 5 * self.tcp_server.sampling_rate # 5 seconds of data
+        self.live_window_time = 5  # seconds
+        self.live_window_size = self.live_window_time * self.tcp_server.sampling_rate # 5 seconds of data
         self.num_channels = 32
 
         # Create buffer for live signal data

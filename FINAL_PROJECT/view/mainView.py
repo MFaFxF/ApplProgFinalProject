@@ -55,7 +55,10 @@ class MainView(QMainWindow):
         central_layout.setSpacing(15)
 
         # Configure live view camera
-        live_plot_widget.view.camera.set_range(x=(1, 5), y=(-50000, 50000)) # TODO adjust range based on window size
+        print("SP window size:", self.signal_processor.live_window_time)
+
+        # set initial camera range for live plot. y based on expected signal range
+        live_plot_widget.view.camera.set_range(x=(0, self.signal_processor.live_window_time), y=(-50000, 50000))
 
         # Connect control buttons and channel selector
         live_plot_widget.start_stop_button.clicked.connect(self.handle_start_stop)
