@@ -4,9 +4,27 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal
 
 class ConnectionWidget(QWidget):
+    """
+    Header widget for managing connection, includes title
+
+    This widget includes:
+    - A toggle button to start/stop the connection
+    - A status label indicating connection state
+    - A centered header label
+    """
+
+    # Emit state of connect button when pressed
     toggled = pyqtSignal(bool)
 
     def __init__(self):
+        """
+        Initialize the widget layout and components.
+
+        Sets up horizontal layout with:
+        - Toggle button (Connect/Disconnect)
+        - Status label (Connected/Disconnected)
+        - Header
+        """
         super().__init__()
 
         self.connected = False  # Initial state: disconnected
@@ -39,35 +57,50 @@ class ConnectionWidget(QWidget):
         layout.setContentsMargins(10, 5, 10, 5)
         layout.setSpacing(20)
 
-        # Left-aligned controls
+        # Left-aligned button and status
         layout.addWidget(self.toggle_button, alignment=Qt.AlignLeft)
         layout.addWidget(self.status_label, alignment=Qt.AlignLeft)
 
-        # Spacer between header and buttons
+        # Spacer between controls and header
         layout.addItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
-        # Centered header
+        # Centered header label
         layout.addWidget(self.header_label, alignment=Qt.AlignLeft)
 
-        # Spacer between header and right border
+        # Spacer between header and right edge
         layout.addItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-
 
         # Final layout setup
         self.setLayout(layout)
 
     def toggle_connection(self):
+        """
+        Toggle the connection state between connected and disconnected.
+
+        This method updates the UI and emits the `toggled` signal.
+        """
         self.connected = not self.connected
         self.update_button_style()
         self.update_status_style()
-        self.toggled.emit(self.connected) 
+        self.toggled.emit(self.connected)
 
     def set_connection_status(self, connected: bool):
+        """
+        Explicitly set connection status, update appearance of connect button / status label.
+
+        Parameters:
+        - connected (bool): Whether the connection is active.
+        """
         self.connected = connected
         self.update_button_style()
         self.update_status_style()
 
     def update_button_style(self):
+        """
+        Update the appearance of the toggle button, depending on connection state.
+        
+        Green for connect, red for disconnect.
+        """
         if self.connected:
             self.toggle_button.setText("Disconnect")
             self.toggle_button.setStyleSheet("""
@@ -96,6 +129,11 @@ class ConnectionWidget(QWidget):
             """)
 
     def update_status_style(self):
+        """
+        Update the appearance of the status label.
+
+        Green for connected, red for disconnected.
+        """
         if self.connected:
             self.status_label.setText("Status:\nConnected")
             self.status_label.setStyleSheet("""

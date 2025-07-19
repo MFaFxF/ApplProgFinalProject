@@ -1,29 +1,54 @@
 from vispy import app, scene
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QButtonGroup, QFrame, QSizePolicy
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, 
+    QButtonGroup, QFrame, QSizePolicy
+)
 from PyQt5.QtCore import Qt
 import numpy as np
 
+
 class LivePlotWidget(QWidget):
+    """
+    Widget for displaying and interacting with live EMG signal data.
+
+    This widget includes:
+    - A VisPy canvas for real-time plotting
+    - A start/stop toggle button
+    - A channel selector (1-32)
+    - Signal mode buttons: Raw, Filter, RMS, Envelope
+    """
+
     def __init__(self):
+        """
+        Initialize the LivePlotWidget.
+
+        Sets up:
+        - VisPy canvas for plotting, incl. y-axis and title on a grid layout
+        - Toolbar with controls for starting/stopping, channel selection, and signal modes
+        """
         super().__init__()
         self.setWindowTitle("Live Plot")
-        self.channel = 0
+        self.channel = 0  # Default channel
 
+        # === Main layout ===
         layout = QHBoxLayout()
         self.setLayout(layout)
+
+        # === VisPy canvas ===
         self.canvas = scene.SceneCanvas(keys='interactive')
         layout.addWidget(self.canvas.native, stretch=6)
 
+        # === Grid layout on canvas ===
         grid = self.canvas.central_widget.add_grid(margin=0)
         grid.spacing = 0
         grid.border_color = 'white'
 
-        # Title
+        # === Plot title ===
         title = scene.Label("Live View", color='white')
         title.height_max = 40
         grid.add_widget(title, row=0, col=0, col_span=2)
 
-        # Y Axis (left)
+        # === Y Axis ===
         yaxis = scene.AxisWidget(
             orientation='left',
             axis_label='EMG Signal',
@@ -31,39 +56,39 @@ class LivePlotWidget(QWidget):
             axis_label_margin=30,
             tick_label_margin=5,
         )
-
         yaxis.width_max = 80
         yaxis.border_color = 'white'
         grid.add_widget(yaxis, row=1, col=0)
 
-        # View (main plot)
+        # === Main plot view ===
         self.view = grid.add_view(row=1, col=1)
         self.view.camera = 'panzoom'
         self.view.border_color = 'white'
-        yaxis.link_view(self.view)
 
+        yaxis.link_view(self.view)  # Sync y-axis with plot view
+
+        # === Grid lines ===
         scene.visuals.GridLines(parent=self.view.scene, color='grey')
 
-        # Line plot
+        # === Line plot ===
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene)
-        self.view.camera.set_range(x=(0, 10), y=(-50000, 50000))
+        self.view.camera.set_range(x=(0, 10), y=(-50000, 50000)) #TODO dynamic range
 
-        # Buttons (right column)
+        # === Toolbar layout ===
         button_layout = QVBoxLayout()
+        button_layout.setContentsMargins(10, 10, 10, 10)
 
-        button_layout.setContentsMargins(10,10,10,10)
+        # Vertical separator
         frame = QFrame()
         frame.setFrameShape(QFrame.VLine)
         frame.setFrameShadow(QFrame.Sunken)
         layout.insertWidget(1, frame)
 
-        # Start/Stop Button
+        # === Start/Stop Button ===
         self.start_stop_button = QPushButton("Start")
         self.start_stop_button.setCheckable(True)
         self.start_stop_button.setChecked(False)
-        #self.start_stop_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.start_stop_button.setStyleSheet(    
-        """
+        self.start_stop_button.setStyleSheet("""
             QPushButton {
                 font-size: 16px;
                 padding: 10px 16px;
@@ -78,17 +103,15 @@ class LivePlotWidget(QWidget):
             QPushButton:checked {
                 background-color: #f44336;
             }
-        """
-        )
+        """)
         self.start_stop_button.clicked.connect(self.change_button_style)
 
-        # Channel Selector
+        # === Channel Selector (1–32) ===
         self.channel_selector = QSpinBox()
         self.channel_selector.setRange(1, 32)
         self.channel_selector.setPrefix("Ch ")
         self.channel_selector.setFixedSize(100, 50)
-        self.channel_selector.setStyleSheet(
-            """
+        self.channel_selector.setStyleSheet("""
             QSpinBox {
                 font-size: 14px;
                 padding: 4px;
@@ -100,14 +123,11 @@ class LivePlotWidget(QWidget):
             QSpinBox::up-button, QSpinBox::down-button {
                 width: 16px;
             }
-            """
-        )
-        button_layout.addWidget(self.channel_selector)
+        """)
 
-
-        # --- Mode Buttons (Raw / Filter / RMS) ---
+        # === Signal Mode Buttons ===
         self.mode_button_group = QButtonGroup(self)
-        self.mode_button_group.setExclusive(True)
+        self.mode_button_group.setExclusive(True)  # Only one active at a time
 
         self.raw_button = QPushButton("Raw")
         self.raw_button.setCheckable(True)
@@ -124,8 +144,7 @@ class LivePlotWidget(QWidget):
 
         for btn in [self.raw_button, self.filter_button, self.rms_button, self.envelope_button]:
             btn.setMinimumSize(100, 40)
-            btn.setStyleSheet(   
-            """
+            btn.setStyleSheet("""
                 QPushButton {
                     background-color: #2c2c2c;
                     color: white;
@@ -141,23 +160,21 @@ class LivePlotWidget(QWidget):
                     background-color: #007acc;
                     border: 1px solid #005f99;
                 }
-            """
-            )
+            """)
             self.mode_button_group.addButton(btn)
 
-        # Wrap mode buttons in a frame for white border
+        # === Wrap toolbar with white border ===
         toolbar_frame = QWidget()
-        toolbar_frame.setStyleSheet(
-            """
+        toolbar_frame.setStyleSheet("""
             QWidget {
                 border: 2px solid white;
                 border-radius: 4px;
             }
-            """
-        )
+        """)
         toolbar_layout = QVBoxLayout()
         toolbar_layout.setSpacing(10)
         toolbar_layout.setContentsMargins(10, 10, 10, 10)
+
         toolbar_layout.addWidget(self.start_stop_button)
         toolbar_layout.addWidget(self.channel_selector)
         toolbar_layout.addWidget(self.raw_button)
@@ -169,21 +186,31 @@ class LivePlotWidget(QWidget):
 
         toolbar_frame.setLayout(toolbar_layout)
         toolbar_frame.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
         button_layout.setSpacing(10)
         button_layout.addWidget(toolbar_frame)
 
+        # === Add toolbar to main layout ===
         layout.addLayout(button_layout)
 
-
     def update_data(self, time_points, data):
+        """
+        Update the live plot with new signal data.
+
+        Parameters:
+        - time_points (np.ndarray): 1D array of time stamps.
+        - data (np.ndarray): 1D array of signal values.
+        """
         self.live_data_time_points = time_points
         self.live_signal = data
-        line_data = np.column_stack((time_points, data))
+        line_data = np.column_stack((time_points, data))  # Combine into (x, y)
         self.line.set_data(line_data)
         self.canvas.native.update()
 
-
     def change_button_style(self):
+        """
+        Toggle the start/stop button text and color based on its state.
+        """
         if self.start_stop_button.isChecked():
             self.start_stop_button.setText("Stop")
             self.start_stop_button.setStyleSheet("background-color: #f44336; color: white;")
