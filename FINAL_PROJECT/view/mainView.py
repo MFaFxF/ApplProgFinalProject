@@ -108,15 +108,18 @@ class MainView(QMainWindow):
         Toggle the data reception state for live signal processing.
 
         Starts or stops the ViewModel's timer and updates the recording flag.
+        Toggles the visibility of the recording toolbar.
         """
         if self.view_model.is_receiving:
             self.view_model.is_receiving = False
             self.signal_processor.is_recording = False
             self.view_model.timer.stop()
+            self.recording_widget.toggle_toolbar_visible(True)
         else:
             self.view_model.is_receiving = True
             self.signal_processor.is_recording = True
             self.view_model.timer.start(int(self.view_model.sleep_time))
+            self.recording_widget.toggle_toolbar_visible(False)
 
     def handle_connection_toggled(self, connected: bool):
         """
