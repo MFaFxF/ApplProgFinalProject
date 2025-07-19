@@ -1,10 +1,9 @@
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-import numpy as np
-from service.signal_processor import SignalProcessor
 from scipy.signal import hilbert, butter, lfilter
-import time
+from service.signal_processor import SignalProcessor
 import csv
+import numpy as np
 
 class MainViewModel(QObject):
     """

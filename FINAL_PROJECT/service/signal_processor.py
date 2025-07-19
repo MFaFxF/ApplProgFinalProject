@@ -1,8 +1,8 @@
-import threading
-import time
 from service.tcp_client import EMGTCPClient
 from service.tcp_server import EMGTCPServer
 import numpy as np
+import threading
+import time
 
 
 class LiveSignalBuffer:

@@ -1,15 +1,13 @@
-import numpy as np
 import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QSizePolicy, QButtonGroup
+)
+from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar,
 )
 from matplotlib.figure import Figure
-
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QSizePolicy, QButtonGroup , QMessageBox ,QFileDialog
-)
-from PyQt5.QtCore import Qt
 
 class RecordingPlotWidget(QWidget):
     """
@@ -194,7 +192,7 @@ class RecordingPlotWidget(QWidget):
         """)
         control_layout.addWidget(self.clear_button)
 
-    def toggle_toolbar_visible(self, visible):
+    def toggle_toolbar_visible(self, visible): #TODO use this in mainView
         """
         Toggle the visibility of the matplotlib toolbar.
 

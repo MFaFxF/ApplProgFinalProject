@@ -1,9 +1,9 @@
-from vispy import app, scene
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, 
     QButtonGroup, QFrame, QSizePolicy
 )
 from PyQt5.QtCore import Qt
+from vispy import scene
 import numpy as np
 
 

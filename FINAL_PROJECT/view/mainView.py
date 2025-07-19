@@ -1,6 +1,6 @@
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QFrame, QSizePolicy)
 import time
-from PyQt5.QtCore import QTimer
 
 from .connectionWidget import ConnectionWidget
 from .recordingWidget import RecordingPlotWidget
@@ -127,7 +127,7 @@ class MainView(QMainWindow):
         if connected:
             self.connection_widget.status_label.setText("Connecting...")
             # Handle connection in a separate thread to avoid blocking the UI
-            QTimer.singleShot(50, self._do_connect)
+            QTimer.singleShot(50, self._do_connect_on_widget)
         else:
             self.connection_widget.status_label.setText("Disconnecting...")
             # Handle connection in a separate thread to avoid blocking the UI
