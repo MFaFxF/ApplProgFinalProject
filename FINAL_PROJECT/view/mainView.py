@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QFrame, QSizePolicy)
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QFrame, QSizePolicy, QSplitter)
 import time
+from PyQt5.QtCore import QTimer, Qt
 
 from .connectionWidget import ConnectionWidget
 from .recordingWidget import RecordingPlotWidget
@@ -50,15 +51,9 @@ class MainView(QMainWindow):
         self.connection_widget.toggled.connect(self.handle_connection_toggled)
 
         # === Live Plot Widget ===
-        live_plot_widget = LivePlotWidget()
-        central_layout.addWidget(live_plot_widget)
+        live_plot_widget = LivePlotWidget(self.signal_processor.live_window_time)
+        #central_layout.addWidget(live_plot_widget , stretch=1)
         live_plot_widget.setStyleSheet("background-color: #1e1e1e;")  # Light green background
-
-        # Configure live view camera
-        print("SP window size:", self.signal_processor.live_window_time)
-
-        # set initial camera range for live plot. y based on expected signal range
-        # live_plot_widget.view.camera.set_range(x=(0, self.signal_processor.live_window_time), y=(-50000, 50000))
 
         # Connect control buttons and channel selector
         live_plot_widget.start_stop_button.clicked.connect(self.handle_start_stop)
@@ -82,19 +77,25 @@ class MainView(QMainWindow):
 
         # === Recording Plot Widget ===
         self.recording_widget = RecordingPlotWidget(self.view_model)
-        central_layout.addWidget(self.recording_widget)
         self.recording_widget.setStyleSheet("background-color: #1e1e1e;")  # Dark theme
 
         # Connect recording controls
         self.recording_widget.channel_selector.valueChanged.connect(view_model.set_recording_channel)
-        self.recording_widget.record_raw_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('raw') if checked else None)
-        self.recording_widget.record_rms_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('rms') if checked else None)
-        self.recording_widget.record_envelope_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('envelope') if checked else None)
-        self.recording_widget.record_filter_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('filter') if checked else None)
+        self.recording_widget.raw_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('raw') if checked else None)
+        self.recording_widget.rms_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('rms') if checked else None)
+        self.recording_widget.envelope_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('envelope') if checked else None)
+        self.recording_widget.filter_button.toggled.connect(lambda checked: view_model.set_recording_processing_mode('filter') if checked else None)
 
         # Connect recorded data update and clear button
         view_model.recorded_data_updated.connect(self.recording_widget.update_data)
         self.recording_widget.clear_button.clicked.connect(self.clear_recording_and_plot)
+        
+        # Splitter to scale live plot and recording plot
+        splitter = QSplitter(Qt.Vertical)
+        splitter.addWidget(live_plot_widget)
+        splitter.addWidget(self.recording_widget)
+        splitter.setSizes([1, 1])  # Initial 50/50 split
+        central_layout.addWidget(splitter, stretch=1)
 
     def clear_recording_and_plot(self):
         """

@@ -28,17 +28,21 @@ class ConnectionWidget(QWidget):
         super().__init__()
 
         self.connected = False  # Initial state: disconnected
-
+        self.setMaximumHeight(80)
+       
         # === Button ===
         self.toggle_button = QPushButton("Connect")
-        self.toggle_button.setFixedSize(100, 40)
+        self.toggle_button.setMinimumSize(70, 40)
+        self.toggle_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+
         self.toggle_button.clicked.connect(self.toggle_connection)
         self.update_button_style()
 
         # === Status Label ===
         self.status_label = QLabel()
         self.status_label.setAlignment(Qt.AlignCenter)
-        self.status_label.setFixedSize(120, 40)
+        self.status_label.setMinimumSize(70, 40)
         self.update_status_style()
 
         # === Header Label (Centered) ===
@@ -46,7 +50,7 @@ class ConnectionWidget(QWidget):
         self.header_label.setAlignment(Qt.AlignLeft)
         self.header_label.setStyleSheet("""
             QLabel {
-                font-size: 28px;
+                font-size: 20px;
                 font-weight: bold;
                 color: white;
             }
