@@ -30,7 +30,7 @@ python main.py
 This will launch the EMG Viewer window.
 
 
-## 🖥️ Usage
+##  Usage
 
 ### 1. Connect to Signal Source
 
@@ -173,7 +173,7 @@ The application closely follows a **Model-View-ViewModel (MVVM)** architecture t
 
 ---
 
-### 🔄 Data Flow Summary
+### Data Flow Summary
 
 ```
 SignalProcessor  <--->  MainViewModel  <--->  Views (LivePlot, Recording, etc)
@@ -181,7 +181,7 @@ SignalProcessor  <--->  MainViewModel  <--->  Views (LivePlot, Recording, etc)
       │                                      │
    TCP I/O                         User interaction (UI)
 ```
-**Model:** Handles the TCP connection and provides the raw data.
-**ViewModel:** Transforms the data, emits it to the plots or exports it to a file.
-**View Layer:** Handles the UI +. visualizations, connects the view model layer to the plots.
+- **Model:** Handles the TCP connection and provides the raw data.
+- **ViewModel:** Transforms the data, emits it to the plots or exports it to a file.
+- **View Layer:** Handles the UI +. visualizations, connects the view model layer to the plots.
 
