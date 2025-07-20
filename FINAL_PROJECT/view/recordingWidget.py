@@ -35,7 +35,8 @@ class RecordingPlotWidget(QWidget):
         self.view_model = view_model
         # self.setContentsMargins(0,0,0,0)
         
-    
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         self.channel = 0
 
         # === Main layout ===
@@ -253,7 +254,10 @@ class RecordingPlotWidget(QWidget):
         self.ax.set_ylabel("EMG Signal", color='white')
         self.ax.tick_params(colors='white')
         self.ax.grid(True, color='white', linestyle='-', linewidth=0.1)
-        self.ax.set_xlim(left=0)
+        if len(time_axis) > 1 and self.time_axis[-1] > 0:
+            self.ax.set_xlim(left=0 ,right=self.time_axis[-1])
+        else: 
+            self.ax.set_xlim(left= 0 , right = 1)    
         self.ax.margins(x=0)
 
         self.figure.tight_layout()

@@ -1,4 +1,5 @@
 from vispy import app, scene
+from vispy.scene.cameras import PanZoomCamera
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, 
     QButtonGroup, QFrame, QSizePolicy ,  QSpacerItem
@@ -29,6 +30,7 @@ class LivePlotWidget(QWidget):
         super().__init__()
         self.setWindowTitle("Live Plot")
         self.channel = 0  # Default channel
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # === Main layout ===
         layout = QHBoxLayout()
@@ -62,10 +64,11 @@ class LivePlotWidget(QWidget):
 
         # === Main plot view ===
         self.view = grid.add_view(row=1, col=1)
-        self.view.camera = 'panzoom'
+        self.view.camera = PanZoomCamera(aspect= None)
         self.view.camera.react_padding = 0
         self.view.border_color = 'white'
         self.view.padding = 0 
+        self.view.camera.interactive = True
         
       
 
@@ -78,6 +81,8 @@ class LivePlotWidget(QWidget):
         # === Line plot ===
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene , width=2)
         self.view.camera.set_range(x=(0, 10), y=(-50000, 50000) ) #TODO dynamic range
+        
+       
 
         # === Toolbar layout ===
         button_layout = QVBoxLayout()

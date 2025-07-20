@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QFrame, QSizePolicy)
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QFrame, QSizePolicy ,  QSplitter)
 import time
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 
 from .connectionWidget import ConnectionWidget
 from .recordingWidget import RecordingPlotWidget
@@ -42,6 +42,8 @@ class MainView(QMainWindow):
 
         # === Connection Widget ===
         self.connection_widget = ConnectionWidget()
+        
+        
         central_layout.addWidget(self.connection_widget)
 
         # Handle connect/disconnect button press
@@ -49,10 +51,11 @@ class MainView(QMainWindow):
 
         # === Live Plot Widget ===
         live_plot_widget = LivePlotWidget()
-        central_layout.addWidget(live_plot_widget)
+        #central_layout.addWidget(live_plot_widget , stretch=1)
         live_plot_widget.setStyleSheet("background-color: #1e1e1e;")  # Light green background
         central_layout.setContentsMargins(10, 10, 10, 10)
         central_layout.setSpacing(15)
+
 
         # Configure live view camera
         live_plot_widget.view.camera.set_range(x=(1, 5), y=(-50000, 50000)) # TODO adjust range based on window size
@@ -79,7 +82,7 @@ class MainView(QMainWindow):
 
         # === Recording Plot Widget ===
         self.recording_widget = RecordingPlotWidget(self.view_model)
-        central_layout.addWidget(self.recording_widget)
+        #central_layout.addWidget(self.recording_widget , stretch= 1)
         self.recording_widget.setStyleSheet("background-color: #1e1e1e;")  # Dark theme
 
         # Connect recording controls
@@ -92,6 +95,11 @@ class MainView(QMainWindow):
         # Connect recorded data update and clear button
         view_model.recorded_data_updated.connect(self.recording_widget.update_data)
         self.recording_widget.clear_button.clicked.connect(self.clear_recording_and_plot)
+        splitter = QSplitter(Qt.Vertical)
+        splitter.addWidget(live_plot_widget)
+        splitter.addWidget(self.recording_widget)
+        splitter.setSizes([1, 1])  # Initial 50/50 split
+        central_layout.addWidget(splitter, stretch=1)
 
     def clear_recording_and_plot(self):
         """
