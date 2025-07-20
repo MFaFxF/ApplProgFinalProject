@@ -206,8 +206,8 @@ class MainViewModel(QObject):
 
         Applies processing mode and emits to connected plots.
         """
-        if self.is_receiving:
-            self.live_data = self.signal_processor.live_signal
+        #if self.is_receiving:
+        self.live_data = self.signal_processor.live_signal
 
         self.processed_live_data = self.process_signal(
             self.live_data[self.live_channel, :],

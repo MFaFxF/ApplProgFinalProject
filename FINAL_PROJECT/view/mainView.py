@@ -29,7 +29,7 @@ class MainView(QMainWindow):
         super().__init__()
         self.view_model = view_model
         self.signal_processor = view_model.signal_processor
-
+        self.setStyleSheet("background-color: #121212;")
         # === Main window setup ===
         self.setWindowTitle("Applied Programming - EMG Data Viewer")
         self.resize(1200, 800)
@@ -50,7 +50,7 @@ class MainView(QMainWindow):
         # === Live Plot Widget ===
         live_plot_widget = LivePlotWidget()
         central_layout.addWidget(live_plot_widget)
-        live_plot_widget.setStyleSheet("background-color: #ccffcc;")  # Light green background
+        live_plot_widget.setStyleSheet("background-color: #1e1e1e;")  # Light green background
         central_layout.setContentsMargins(10, 10, 10, 10)
         central_layout.setSpacing(15)
 
@@ -127,7 +127,7 @@ class MainView(QMainWindow):
         if connected:
             self.connection_widget.status_label.setText("Connecting...")
             # Handle connection in a separate thread to avoid blocking the UI
-            QTimer.singleShot(50, self._do_connect)
+            QTimer.singleShot(50, self._do_connect_on_widget)
         else:
             self.connection_widget.status_label.setText("Disconnecting...")
             # Handle connection in a separate thread to avoid blocking the UI
