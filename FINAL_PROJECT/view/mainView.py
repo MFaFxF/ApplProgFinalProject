@@ -29,7 +29,7 @@ class MainView(QMainWindow):
         super().__init__()
         self.view_model = view_model
         self.signal_processor = view_model.signal_processor
-
+        self.setStyleSheet("background-color: #121212;")
         # === Main window setup ===
         self.setWindowTitle("Applied Programming - EMG Data Viewer")
         self.resize(1200, 800)
@@ -50,7 +50,7 @@ class MainView(QMainWindow):
         # === Live Plot Widget ===
         live_plot_widget = LivePlotWidget()
         central_layout.addWidget(live_plot_widget)
-        live_plot_widget.setStyleSheet("background-color: #ccffcc;")  # Light green background
+        live_plot_widget.setStyleSheet("background-color: #1e1e1e;")  # Light green background
         central_layout.setContentsMargins(10, 10, 10, 10)
         central_layout.setSpacing(15)
 

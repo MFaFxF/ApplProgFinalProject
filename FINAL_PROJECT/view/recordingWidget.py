@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QSizePolicy, QButtonGroup
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSpinBox, QSizePolicy, QButtonGroup , QSpacerItem
 )
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import (
@@ -8,6 +8,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar,
 )
 from matplotlib.figure import Figure
+
 
 class RecordingPlotWidget(QWidget):
     """
@@ -31,7 +32,8 @@ class RecordingPlotWidget(QWidget):
         """
         super().__init__()
         self.view_model = view_model
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
+    
         self.channel = 0
 
         # === Main layout ===
@@ -43,6 +45,7 @@ class RecordingPlotWidget(QWidget):
         plot_layout = QVBoxLayout()
         plot_layout.setContentsMargins(5, 5, 5, 5)
         plot_container.setLayout(plot_layout)
+        plot_container.setStyleSheet("border : 1px solid white")
 
         with plt.style.context('dark_background'):
             self.figure = Figure()
@@ -64,7 +67,7 @@ class RecordingPlotWidget(QWidget):
             QToolButton {
                 background: transparent;
                 border: none;
-                padding: 5px;
+                padding: 6px ;
             }
             QToolButton:hover {
                 background-color: #ddd;
@@ -79,42 +82,40 @@ class RecordingPlotWidget(QWidget):
 
         # === Horizontal layout for plot and controls ===
         horizontal_layout = QHBoxLayout()
-        horizontal_layout.addWidget(plot_container)
+        horizontal_layout.addWidget(plot_container , stretch= 6)
 
         # === Control panel frame ===
         control_layout = QVBoxLayout()
         control_layout.setAlignment(Qt.AlignTop)
-        control_layout.setContentsMargins(10, 10, 10, 10)
+        control_layout.setContentsMargins(15, 15, 15, 15)
+        
 
         control_frame = QWidget()
         control_frame.setLayout(control_layout)
-        control_frame.setStyleSheet("background-color: #1e1e1e; border: 1px solid #333;")
-        
-        control_frame.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-
-        horizontal_layout.addWidget(control_frame)
+        control_frame.setStyleSheet("background-color: #1e1e1e; border: 1.5px solid white; border-radius: 4px")
+       
+        horizontal_layout.addWidget(control_frame , stretch= 1)
 
         # === Channel selector ===
         self.channel_selector = QSpinBox()
         self.channel_selector.setRange(1, 32)
         self.channel_selector.setPrefix("Ch ")
-        self.channel_selector.setFixedSize(100, 50)
+        self.channel_selector.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.channel_selector.setStyleSheet("""
             QSpinBox {
                 font-size: 14px;
-                padding: 4px;
+                padding: 6px ;
                 color: white;
                 background-color: #333;
                 border-radius: 4px;
-                background: "black"
+                border: 2px solid white;
             }
             QSpinBox::up-button, QSpinBox::down-button {
                 width: 16px;
             }
         """)
+        control_layout.setSpacing(15)
         control_layout.addWidget(self.channel_selector)
-
-        main_layout.addLayout(horizontal_layout)
 
         # === Signal processing mode buttons ===
         self.record_mode_group = QButtonGroup(self)
@@ -132,17 +133,19 @@ class RecordingPlotWidget(QWidget):
 
         self.record_filter_button = QPushButton("Filter")
         self.record_filter_button.setCheckable(True)
+        
 
         for btn in [self.record_raw_button, self.record_rms_button, self.record_envelope_button, self.record_filter_button]:
-            btn.setMaximumSize(100, 40)
+            btn.setSizePolicy(QSizePolicy.Preferred , QSizePolicy.Fixed)
+            btn.setMinimumWidth(100)
             btn.setStyleSheet("""
                 QPushButton {
-                    font-size: 14px;
-                    padding: 8px;
+                    font-size: 12px;
+                    padding: 6px;
                     background-color: #2c2c2c;
                     color: white;
-                    border: 1px solid #555;
-                    border-radius: 6px;
+                    border: 1px solid #444;
+                    border-radius: 4px;
                 }
                 QPushButton:hover {
                     background-color: #3a3a3a;
@@ -153,33 +156,34 @@ class RecordingPlotWidget(QWidget):
             """)
             self.record_mode_group.addButton(btn)
             control_layout.addWidget(btn)
-
+        control_layout.setSpacing(12)
         # === Export button ===
         self.export_button = QPushButton("Export")
-        self.export_button.setCheckable(True)
+        
         self.export_button.setStyleSheet("""
-            QPushButton {
-                background-color: #444;
-                color: white;
-                font-size: 14px;
-                padding: 6px 12px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #555;
-            }
+        QPushButton {
+            background-color: #444;
+            color: white;
+            font-size: 12px;
+            padding: 6px ;
+            border-radius: 4px;
+            border: none ;                             
+        }
+        QPushButton:hover {
+            background-color: #555;
+        }
         """)
         self.export_button.clicked.connect(self.view_model.export_results)
         control_layout.addWidget(self.export_button)
 
-        control_layout.setSpacing(10)
+        control_layout.setSpacing(8)
 
         # === Clear plot button ===
         self.clear_button = QPushButton("Clear Recording")
-        self.clear_button.setFixedSize(140, 40)
+        self.clear_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.clear_button.setStyleSheet("""
             QPushButton {
-                font-size: 13px;
+                font-size: 12px;
                 padding: 6px;
                 background-color: #b00020;
                 color: white;
@@ -195,7 +199,10 @@ class RecordingPlotWidget(QWidget):
         """)
         control_layout.addWidget(self.clear_button)
 
-    def toggle_toolbar_visible(self, visible): #TODO use this in mainView
+        control_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        main_layout.addLayout(horizontal_layout)
+    
+    def toggle_toolbar_visible(self, visible):
         """
         Toggle the visibility of the matplotlib toolbar.
 
