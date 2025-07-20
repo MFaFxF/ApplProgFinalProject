@@ -43,6 +43,8 @@ class MainView(QMainWindow):
         # === Connection Widget ===
         self.connection_widget = ConnectionWidget()
         central_layout.addWidget(self.connection_widget)
+        central_layout.setContentsMargins(10, 10, 10, 10)
+        central_layout.setSpacing(15)
 
         # Handle connect/disconnect button press
         self.connection_widget.toggled.connect(self.handle_connection_toggled)
@@ -51,14 +53,12 @@ class MainView(QMainWindow):
         live_plot_widget = LivePlotWidget()
         central_layout.addWidget(live_plot_widget)
         live_plot_widget.setStyleSheet("background-color: #1e1e1e;")  # Light green background
-        central_layout.setContentsMargins(10, 10, 10, 10)
-        central_layout.setSpacing(15)
 
         # Configure live view camera
         print("SP window size:", self.signal_processor.live_window_time)
 
         # set initial camera range for live plot. y based on expected signal range
-        live_plot_widget.view.camera.set_range(x=(0, self.signal_processor.live_window_time), y=(-50000, 50000))
+        # live_plot_widget.view.camera.set_range(x=(0, self.signal_processor.live_window_time), y=(-50000, 50000))
 
         # Connect control buttons and channel selector
         live_plot_widget.start_stop_button.clicked.connect(self.handle_start_stop)

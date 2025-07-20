@@ -18,7 +18,7 @@ class LivePlotWidget(QWidget):
     - Signal mode buttons: Raw, Filter, RMS, Envelope
     """
 
-    def __init__(self):
+    def __init__(self, time_window_size=5):
         """
         Initialize the LivePlotWidget.
 
@@ -57,17 +57,14 @@ class LivePlotWidget(QWidget):
             tick_label_margin=5,
         )
         yaxis.width_max = 80
-        yaxis.border_color = 'white'
+        # yaxis.border_color = 'white'
         grid.add_widget(yaxis, row=1, col=0)
 
         # === Main plot view ===
         self.view = grid.add_view(row=1, col=1)
         self.view.camera = 'panzoom'
-        self.view.camera.react_padding = 0
         self.view.border_color = 'white'
-        self.view.padding = 0 
         
-      
 
 
         yaxis.link_view(self.view)  # Sync y-axis with plot view
@@ -77,7 +74,7 @@ class LivePlotWidget(QWidget):
 
         # === Line plot ===
         self.line = scene.Line(np.array([[0, 0]]), parent=self.view.scene, width=2)
-        self.view.camera.set_range(x=(0, 10), y=(-50000, 50000)) #TODO dynamic range
+        self.view.camera.set_range(x=(0, time_window_size), y=(-50000, 50000)) #TODO dynamic range
 
         # === Toolbar layout ===
         button_layout = QVBoxLayout()
@@ -206,9 +203,17 @@ class LivePlotWidget(QWidget):
         - time_points (np.ndarray): 1D array of time stamps.
         - data (np.ndarray): 1D array of signal values.
         """
+        # x_start = self.view.camera.rect.left
+        # x_end = self.view.camera.rect.right
+
+
         self.live_data_time_points = time_points
         self.live_signal = data
+
+        # padded_time = np.concatenate([[x_start] , time_points , [x_end]])
+        # padded_data = np.concatenate([[data[0]], data, [data[-1]]])
         line_data = np.column_stack((time_points, data))  # Combine into (x, y)
+        # line_data = np.column_stack((padded_time, padded_data))
         self.line.set_data(line_data)
         self.canvas.native.update()
 

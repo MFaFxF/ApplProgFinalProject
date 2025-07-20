@@ -70,7 +70,7 @@ class SignalProcessor:
         # Configure sampling parameters
         self.sampling_rate = self.tcp_server.sampling_rate
         self.sleep_time = self.tcp_server.sleep_time
-        self.live_window_time = 5  # seconds
+        self.live_window_time = 5 # seconds
         self.live_window_size = self.live_window_time * self.tcp_server.sampling_rate # 5 seconds of data
         self.num_channels = 32
 
@@ -82,7 +82,7 @@ class SignalProcessor:
 
         # Initialize live signal and recording storage
         self.live_signal = np.zeros((self.num_channels, self.live_window_size), dtype=np.float32)
-        self.recorded_signal = self.live_signal.copy()
+        self.recorded_signal = np.zeros_like(self.live_signal[:, -1:])
 
         # Recording state
         self.is_recording = False

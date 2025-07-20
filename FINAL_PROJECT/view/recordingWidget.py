@@ -56,6 +56,7 @@ class RecordingPlotWidget(QWidget):
             self.ax.set_ylabel("EMG Signal", color='white')
             self.ax.tick_params(colors='white')
             self.ax.grid(True, color='white', linestyle='--', linewidth=0.5)
+            self.figure.tight_layout()
 
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas, self)
@@ -221,8 +222,9 @@ class RecordingPlotWidget(QWidget):
         self.ax.set_xlabel("Time (s)", color='white')
         self.ax.set_ylabel("EMG Signal", color='white')
         self.ax.tick_params(colors='white')
-        self.ax.grid(True, color='white', linestyle='--', linewidth=0.1)
+        self.ax.grid(True, color='white', linestyle='-', linewidth=0.1)
         self.canvas.draw()
+
 
     def update_data(self, time_axis, data):
         """
@@ -244,6 +246,5 @@ class RecordingPlotWidget(QWidget):
         self.ax.tick_params(colors='white')
         self.ax.grid(True, color='white', linestyle='-', linewidth=0.1)
 
-        self.figure.tight_layout()
         self.canvas.draw()
         self.canvas.flush_events()
