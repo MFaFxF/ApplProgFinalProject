@@ -5,29 +5,20 @@ A PyQt application for visualization, processing and recording of a simulated mu
 
 ## Getting Started
 
-- Create virtual environment:
+- Create virtual environment (assuming uv as package manager):
 
 ```bash
-python -m venv .venv
+uv venv .venv
 ```
 - Activate the virtual environment:
-
-  - On Windows:
-
-  ```bash
-  .venv\Scripts\activate
-  ```
-
-  - On macOS/Linux:
-
-  ```bash
-  source .venv/bin/activate
-  ```
+```bash
+uv activate .venv
+```
 
 - Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 - Run the application from the root folder:
