@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from scipy.signal import hilbert, butter, lfilter
+from scipy.signal import hilbert, butter, filtfilt
 from service.signal_processor import SignalProcessor
 import csv
 import numpy as np
@@ -49,8 +49,8 @@ class MainViewModel(QObject):
         # Processing settings
         self.live_processing_mode = 'raw'
         self.recording_processing_mode = 'raw'
-        self.rms_window_size = 200  # 100 ms at 2000 Hz
-        self.filter_cutoff = 0.1    # TODO calibrate
+        self.rms_window_size = 20  # 100 ms at 2000 Hz
+        self.filter_band = (20, 450)  # Bandpass filter range in Hz
 
         # Channel selection (0-indexed)
         self.live_channel = 0
@@ -170,8 +170,12 @@ class MainViewModel(QObject):
         Returns:
         - np.ndarray: Filtered signal
         """
-        b, a = butter(4, self.filter_cutoff, btype="low")
-        return lfilter(b, a, data)
+        nyquist = 0.5 * self.sampling_rate
+        low = self.filter_band[0] / nyquist
+        high = self.filter_band[1] / nyquist
+
+        b, a = butter(4, [low, high], btype='bandpass')
+        return filtfilt(b, a, data)
 
     def export_results(self):
         """
