@@ -2,7 +2,7 @@
 
 A PyQt application for visualization, processing and recording of a simulated multi-channel EMG Signal
 
-
+![alt text](screenshot.png)
 ## Getting Started
 
 - Create virtual environment (assuming uv as package manager):
