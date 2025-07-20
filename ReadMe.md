@@ -1,12 +1,12 @@
-# EMG Data Viewer
+# Applied Programming - EMG Data Viewer
 
-An interactive desktop application for visualizing, processing, and recording EMG (electromyography) signal data using a live TCP data stream.
+A PyQt application for visualization, processing and recording of a simulated multi-channel EMG Signal
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-To run the application:
+Run the application from the root folder:
 
 ```bash
 python main.py
@@ -21,19 +21,19 @@ This will launch the EMG Viewer window.
 ### 1. Connect to Signal Source
 
 - Click the **“Connect”** button to start both the TCP server and client.
-- The application begins generating and receiving EMG data.
+- The application begins generating and receiving EMG data in the background.
 - To stop the stream, click **“Disconnect”**.
 
 ---
 
 ### 2. Start/Stop Live Plotting
 
-- Click the **“Start”** button to begin plotting live EMG data.
-- While active:
-  - The current channel is displayed in real time.
-  - The full 32-channel data is added to the **recorded buffer**.
-- Click **“Stop”** to pause live plotting and recording.
-  - The data stream **continues running in the background**.
+Click the **“Start”** button to begin plotting live EMG data.
+While active:
+  - The signal of the current channel is shown in the upper window, with the selected transformation
+  - The full 32-channel data is added to the recording, seen below.
+Click **“Stop”** to pause live plotting and recording.
+The signal continues in the background.
 
 ---
 
@@ -55,11 +55,10 @@ This will launch the EMG Viewer window.
 
 ### 4. Recording Controls
 
-- **Channel Selector**: Same as Live View — selects which recorded channel to display.
-- **Signal Processing Modes**: Identical to the live view.
+- **Channel Selector**: Selects which recorded channel to display.
+- **Signal Processing Modes**: Processing modes, same as in the live view.
 - **Export Recording**: Save the processed recording for the selected channel as a `.csv` file with columns for `Time` and `Value`
-
-- **Clear Recording**: Clears the current buffer to prepare for a new recording session.
+- **Clear Recording**: Clears the current recording, starts a new one.
 
 ---
 
