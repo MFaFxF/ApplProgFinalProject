@@ -2,11 +2,35 @@
 
 A PyQt application for visualization, processing and recording of a simulated multi-channel EMG Signal
 
----
 
 ## Getting Started
 
-Run the application from the root folder:
+- Create virtual environment:
+
+```bash
+python -m venv .venv
+```
+- Activate the virtual environment:
+
+  - On Windows:
+
+  ```bash
+  .venv\Scripts\activate
+  ```
+
+  - On macOS/Linux:
+
+  ```bash
+  source .venv/bin/activate
+  ```
+
+- Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+- Run the application from the root folder:
 
 ```bash
 python main.py
@@ -14,7 +38,6 @@ python main.py
 
 This will launch the EMG Viewer window.
 
----
 
 ## 🖥️ Usage
 
@@ -48,7 +71,7 @@ The signal continues in the background.
   |-----------|--------------------------------------------|
   | `Raw`     | Unprocessed signal                         |
   | `RMS`     | Root Mean Square                           |
-  | `Filter`  | Low-pass Butterworth filter                |
+  | `Filter`  | Band-pass Butterworth filter                |
   | `Envelope`| Signal envelope using Hilbert function     |
 
 ---
@@ -167,8 +190,7 @@ SignalProcessor  <--->  MainViewModel  <--->  Views (LivePlot, Recording, etc)
       │                                      │
    TCP I/O                         User interaction (UI)
 ```
-
-- The **Model** handles raw data and network.
-- The **ViewModel** transforms that data and drives UI behavior.
-- The **Views** are presentation-only and signal user intent back to the ViewModel.
+**Model:** Handles the TCP connection and provides the raw data.
+**ViewModel:** Transforms the data, emits it to the plots or exports it to a file.
+**View Layer:** Handles the UI +. visualizations, connects the view model layer to the plots.
 
