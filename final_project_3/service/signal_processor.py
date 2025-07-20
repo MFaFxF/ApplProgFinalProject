@@ -23,7 +23,7 @@ class SignalProcessor:
         self.tcp_server = EMGTCPServer()
         self.tcp_client = EMGTCPClient()
 
-        self.live_window_size = 2048 #TODO set size to equivalent of 10s
+        self.live_window_size = 3 * self.tcp_server.sampling_rate # 3 seconds
         self.num_channels = 32
 
         self.live_signal_buffer = LiveSignalBuffer()

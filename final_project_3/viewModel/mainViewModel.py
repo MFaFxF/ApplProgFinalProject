@@ -32,7 +32,7 @@ class MainViewModel(QObject):
 
         self.channel = 0
 
-        self.live_data_time_points = np.linspace(0, 10, self.signal_processor.live_window_size) #TODO meaningful value
+        self.live_data_time_points = np.linspace(0, 10, self.signal_processor.live_window_size) # meaningful value
 
         self.is_receiving = False
         self.live_signal = np.zeros((32, self.signal_processor.live_window_size), dtype=np.float32)
